@@ -1,5 +1,7 @@
 package io.topiacoin.node.model;
 
+import io.topiacoin.node.Configuration;
+import io.topiacoin.node.exceptions.NotInitializedException;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import io.topiacoin.node.model.provider.MemoryDataModelProvider;
 
@@ -14,7 +16,7 @@ public class DataModel {
 			if (_config.getConfigurationOption("model.storage.type", "memory").equalsIgnoreCase("memory")) {
 				_provider = new MemoryDataModelProvider();
 			} else {
-				_provider = new SQLiteDataModelProvider(_config);
+				//_provider = new SQLiteDataModelProvider(_config);
 			}
 		} else {
 			throw new NotInitializedException();

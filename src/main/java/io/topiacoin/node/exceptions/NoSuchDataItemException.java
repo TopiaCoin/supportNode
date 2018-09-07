@@ -1,13 +1,13 @@
-package io.topiacoin.node.model.exceptions;
+package io.topiacoin.node.exceptions;
 
 import java.security.PrivilegedActionException;
 
-public class ContainerAlreadyExistsException extends Exception {
+public class NoSuchDataItemException extends Exception {
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
      * subsequently be initialized by a call to {@link #initCause}.
      */
-    public ContainerAlreadyExistsException() {
+    public NoSuchDataItemException() {
     }
 
     /**
@@ -17,7 +17,7 @@ public class ContainerAlreadyExistsException extends Exception {
      * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
      *                method.
      */
-    public ContainerAlreadyExistsException(String message) {
+    public NoSuchDataItemException(String message) {
         super(message);
     }
 
@@ -31,7 +31,7 @@ public class ContainerAlreadyExistsException extends Exception {
      *
      * @since 1.4
      */
-    public ContainerAlreadyExistsException(String message, Throwable cause) {
+    public NoSuchDataItemException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -46,7 +46,7 @@ public class ContainerAlreadyExistsException extends Exception {
      *
      * @since 1.4
      */
-    public ContainerAlreadyExistsException(Throwable cause) {
+    public NoSuchDataItemException(Throwable cause) {
         super(cause);
     }
 }
