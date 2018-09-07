@@ -19,7 +19,7 @@ import static junit.framework.TestCase.*;
 public abstract class AbstractDataStorageProviderTest {
 
     protected abstract DataStorageProvider getDataStorageProvider() ;
-    
+
     @Test
     public void testSaveFetchRemoveDataStream() throws Exception {
 
