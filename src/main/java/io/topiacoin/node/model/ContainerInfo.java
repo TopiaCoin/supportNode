@@ -6,6 +6,10 @@ public class ContainerInfo {
 	private String id;
 	private long expirationDate;
 
+	public ContainerInfo() {
+
+	}
+
 	public ContainerInfo(String id, long expirationDate) {
 		this.id = id;
 		this.expirationDate = expirationDate;

@@ -46,7 +46,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if (!_containerMap.containsKey(id)) {
 			throw new NoSuchContainerException("No container exists with the requested ID");
 		}
-		return _containerMap.get(id);
+		return new ContainerInfo(_containerMap.get(id));
 	}
 
 	@Override public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException {
@@ -70,7 +70,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if (!_dataItemMap.containsKey(id)) {
 			throw new NoSuchDataItemException("No DataItem exists with the requested ID");
 		}
-		return _dataItemMap.get(id);
+		return new DataItemInfo(_dataItemMap.get(id));
 	}
 
 	@Override public List<DataItemInfo> getDataItems(String containerID) throws NoSuchContainerException {
@@ -131,7 +131,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if (!_microNetworkMap.containsKey(id)) {
 			throw new NoSuchMicroNetworkException("No Micro Network exists with the requested ID");
 		}
-		return _microNetworkMap.get(id);
+		return new MicroNetworkInfo(_microNetworkMap.get(id));
 	}
 
 	@Override public void removeMicroNetwork(String id) throws NoSuchMicroNetworkException {
@@ -144,11 +144,5 @@ public class MemoryDataModelProvider implements DataModelProvider {
 
 	@Override public void close() {
 
-	}
-
-	// -------- Private Methods --------
-
-	private String createVersionKey(String fileID, String versionID) {
-		return fileID + ":" + versionID;
 	}
 }

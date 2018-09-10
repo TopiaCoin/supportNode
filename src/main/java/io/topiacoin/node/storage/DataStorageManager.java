@@ -1,7 +1,7 @@
 package io.topiacoin.node.storage;
 
-import io.topiacoin.node.model.exceptions.DataItemAlreadyExistsException;
-import io.topiacoin.node.model.exceptions.NoSuchDataItemException;
+import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
+import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.storage.exceptions.CorruptDataItemException;
 
 import java.io.IOException;

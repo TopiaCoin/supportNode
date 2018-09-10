@@ -10,6 +10,9 @@ public class MicroNetworkInfo {
 	private String rpcURL;
 	private String p2pURL;
 
+	public MicroNetworkInfo() {
+
+	}
 	public MicroNetworkInfo(String id, String containerId, String path, MicroNetworkState state, String rpcURL, String p2pURL) {
 		this.id = id;
 		this.containerID = containerId;

@@ -8,6 +8,9 @@ public class DataItemInfo {
 	private long size;
 	private String dataHash;
 
+	public DataItemInfo() {
+
+	}
 	public DataItemInfo(String id, String containerID, long size, String dataHash) {
 		this.id = id;
 		this.containerID = containerID;

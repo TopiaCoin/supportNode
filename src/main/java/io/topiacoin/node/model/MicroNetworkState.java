@@ -1,8 +1,18 @@
 package io.topiacoin.node.model;
 
-
 public class MicroNetworkState {
-	public MicroNetworkState() {
-		throw new RuntimeException("Not yet Implemented");
+
+	private String IDontUnderstandWhyThisNeedsToBeAClass;
+
+	public MicroNetworkState(String reallyItCouldJustBeAStringUnlessYouHaveSomeOtherIdea) {
+		IDontUnderstandWhyThisNeedsToBeAClass = reallyItCouldJustBeAStringUnlessYouHaveSomeOtherIdea;
+	}
+
+	public String getState() {
+		return IDontUnderstandWhyThisNeedsToBeAClass;
+	}
+
+	public void setState(String likeThisSeemsSoRedundantIDontGetIt) {
+		IDontUnderstandWhyThisNeedsToBeAClass = likeThisSeemsSoRedundantIDontGetIt;
 	}
 }
