@@ -3,12 +3,29 @@ package io.topiacoin.node.storage;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.storage.exceptions.CorruptDataItemException;
+import io.topiacoin.node.storage.provider.DataStorageProvider;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class DataStorageManager {
+
+    private DataStorageProvider _dataStorageProvider ;
+
+    @PostConstruct
+    public void initialize() {
+
+    }
+
+    @PreDestroy
+    public void shutdown() {
+
+    }
 
     /**
      * Saves the data in the given dataStream.  The data is recorded using the specified dataID and verified against the
@@ -32,6 +49,7 @@ public class DataStorageManager {
     void saveData(String dataID, String containerID, String dataHash, InputStream dataStream)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
 
+        _dataStorageProvider.saveData(dataID, dataStream);
     }
 
     /**
@@ -54,7 +72,7 @@ public class DataStorageManager {
      */
     void saveData(String dataID, String containerID, String dataHash, byte[] data)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
-
+        saveData(dataID, containerID, dataHash, new ByteArrayInputStream(data));
     }
 
     /**
@@ -73,7 +91,13 @@ public class DataStorageManager {
      */
     byte[] fetchData(String dataID, String containerID)
             throws IOException, NoSuchDataItemException, CorruptDataItemException {
-        return null;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        _dataStorageProvider.fetchData(dataID, outputStream);
+        outputStream.close();
+        byte[] data = outputStream.toByteArray();
+
+        return data;
     }
 
     /**
@@ -91,7 +115,7 @@ public class DataStorageManager {
      */
     void fetchData(String dataID, String containerID, OutputStream outputStream)
             throws IOException, NoSuchDataItemException, CorruptDataItemException {
-
+        _dataStorageProvider.fetchData(dataID, outputStream);
     }
 
     /**
@@ -109,7 +133,14 @@ public class DataStorageManager {
      */
     byte[] fetchDataSubset(String dataID, String containerID, int offset, int length)
             throws IOException, NoSuchDataItemException {
-        return null;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        _dataStorageProvider.fetchData(dataID, offset, length, outputStream);
+        outputStream.close();
+        byte[] data = outputStream.toByteArray();
+
+        return data;
     }
 
     /**
@@ -126,7 +157,7 @@ public class DataStorageManager {
      */
     boolean removeData(String dataID, String containerID)
             throws IOException {
-        return false;
+        return _dataStorageProvider.removeData(dataID);
     }
 
     /**
@@ -139,7 +170,7 @@ public class DataStorageManager {
      */
     void removeData(String containerID)
             throws IOException {
-
+        // TODO - Implement this method
     }
 
     /**
@@ -158,8 +189,10 @@ public class DataStorageManager {
      */
     boolean hasData(String dataID, String containerID)
             throws IOException {
-        return false;
+        return _dataStorageProvider.hasData(dataID);
     }
 
-
+    public void setDataStorageProvider(DataStorageProvider dataStorageProvider) {
+        _dataStorageProvider = dataStorageProvider;
+    }
 }

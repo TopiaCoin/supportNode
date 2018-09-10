@@ -1,5 +1,7 @@
 package io.topiacoin.node.storage.provider;
 
+import io.topiacoin.node.exceptions.NoSuchDataItemException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,8 +26,9 @@ public interface DataStorageProvider {
      * @param outputStream The OutputStream to which the fetched item will be written.
      *
      * @throws IOException If there is an exception trying to fetch the data.
+     * @throws NoSuchDataItemException If the specified Data Item does not exist.
      */
-    void fetchData(String dataID, OutputStream outputStream) throws IOException;
+    void fetchData(String dataID, OutputStream outputStream) throws IOException, NoSuchDataItemException;
 
     /**
      * Retrieves the requested portion of the data item from persistent storage and writes to to the given outputStream.
@@ -38,8 +41,9 @@ public interface DataStorageProvider {
      * @param outputStream The OutputStream to which the fetched data will be written.
      *
      * @throws IOException If there is an exception trying to fetch the data.
+     * @throws NoSuchDataItemException If the specified Data Item does not exist.
      */
-    void fetchData(String dataID, int offset, int length, OutputStream outputStream) throws IOException;
+    void fetchData(String dataID, int offset, int length, OutputStream outputStream) throws IOException, NoSuchDataItemException;
 
     /**
      * Removes the data item from persistent storage.  Returns true if a matching data item was found and removed.

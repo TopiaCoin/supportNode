@@ -1,7 +1,14 @@
 package io.topiacoin.node.utilities;
 
+import org.apache.commons.codec.binary.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class HashUtilities {
 
@@ -19,7 +26,12 @@ public class HashUtilities {
      *                                  this system.
      */
     public static boolean verifyHash(String dataHash, byte[] data) throws NoSuchAlgorithmException {
-        return false;
+        try {
+            return verifyHash(dataHash, new ByteArrayInputStream(data));
+        } catch ( IOException e ) {
+            // NOOP - This should not happen with a ByteArrayInputStream
+            return false;
+        }
     }
 
     /**
@@ -35,9 +47,24 @@ public class HashUtilities {
      *
      * @throws NoSuchAlgorithmException If the algorithm specified in the encoded dataHash string is not available on
      *                                  this system.
+     * @throws IOException If there is an exception reading from the dataStream.
      */
-    public static boolean verifyHash(String dataHash, InputStream dataStream) throws NoSuchAlgorithmException {
-        return false;
+    public static boolean verifyHash(String dataHash, InputStream dataStream) throws NoSuchAlgorithmException, IOException {
+
+        HashInfo hashInfo = new HashInfo(dataHash) ;
+
+        // Calculate the Hash of the dataStream
+        MessageDigest digest = MessageDigest.getInstance(hashInfo.getAlgorithm());
+
+        DigestInputStream dis = new DigestInputStream(dataStream, digest);
+        byte[] buffer = new byte[8192];
+        while ( dis.read(buffer) > 0) { }
+        dis.close();
+        byte[] hash = digest.digest() ;
+
+        boolean matches = Arrays.equals(hashInfo.getHash(), hash);
+
+        return matches;
     }
 
     /**
@@ -51,7 +78,12 @@ public class HashUtilities {
      * @throws NoSuchAlgorithmException If the specified algorithm is not available on this system.
      */
     public static String generateHash(String algorithm, byte[] data) throws NoSuchAlgorithmException {
-        return null;
+        try {
+            return generateHash(algorithm, new ByteArrayInputStream(data));
+        } catch (IOException e){
+            // NOOP - This should not happen on a ByteArrayInputStream.
+            return null;
+        }
     }
 
     /**
@@ -63,16 +95,28 @@ public class HashUtilities {
      * @return An encoded hash string containing the algorithm and hash of the input data stream.
      *
      * @throws NoSuchAlgorithmException If the specified algorithm is not available on this system.
+     * @throws IOException If there is an exception reading from the dataStream.
      */
-    public static String generateHash(String algorithm, InputStream dataStream) throws NoSuchAlgorithmException {
-        return null;
+    public static String generateHash(String algorithm, InputStream dataStream) throws NoSuchAlgorithmException, IOException {
+        MessageDigest digest = MessageDigest.getInstance(algorithm);
+
+        DigestInputStream dis = new DigestInputStream(dataStream, digest);
+        byte[] buffer = new byte[8192];
+        while ( dis.read(buffer) > 0) { }
+        dis.close();
+        byte[] hash = digest.digest() ;
+
+        HashInfo hashInfo = new HashInfo(algorithm, hash) ;
+        String dataHash = hashInfo.getEncoded();
+
+        return dataHash;
     }
 
 
     /**
      * Encapsulates The Hash Information
      */
-    public class HashInfo {
+    public static class HashInfo {
         private String algorithm;
         private byte[] hash;
 
@@ -94,7 +138,15 @@ public class HashUtilities {
          * @param dataHash
          */
         public HashInfo(String dataHash) {
-            // TODO: Decode the dataHash into the algorithm and raw hash components.
+
+            // Decode the dataHash into the algorithm and raw hash components.
+            String[] parts = dataHash.split(":") ;
+            String algorithm = parts[0] ;
+            String hashString = parts[1];
+            byte[] hash = Base64.decodeBase64(hashString) ;
+
+            this.algorithm = algorithm;
+            this.hash = hash;
         }
 
         /**
@@ -103,8 +155,13 @@ public class HashUtilities {
          * @return A string containing the encoded form of this hash info.
          */
         public String getEncoded() {
-            // TODO:  Encode the algorithm and hash into a standard encoded string.
-            return null;
+            // Encode the algorithm and hash into a standard encoded string.
+            StringBuffer sb = new StringBuffer();
+            sb.append(algorithm) ;
+            sb.append(":") ;
+            sb.append(Base64.encodeBase64String(hash));
+
+            return sb.toString();
         }
 
         /**

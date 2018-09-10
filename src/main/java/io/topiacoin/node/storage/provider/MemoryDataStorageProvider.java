@@ -2,11 +2,20 @@ package io.topiacoin.node.storage.provider;
 
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-public class FileSystemStorageProvider implements DataStorageProvider {
+public class MemoryDataStorageProvider implements DataStorageProvider {
+
+    private Map<String, byte[]> _dataMap ;
+
+    public MemoryDataStorageProvider() {
+        _dataMap = new HashMap<>();
+    }
 
     /**
      * Saves the given data item to persistent storage.
@@ -18,7 +27,17 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public void saveData(String dataID, InputStream dataStream) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
+        byte[] buffer = new byte[16384] ;
+        int bytesRead = 0 ;
+        while ( (bytesRead = dataStream.read(buffer)) > 0 ) {
+            baos.write(buffer, 0, bytesRead);
+        }
+        baos.close();
+        byte[] data = baos.toByteArray();
+
+        _dataMap.put (dataID, data) ;
     }
 
     /**
@@ -32,8 +51,14 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      * @throws NoSuchDataItemException If the specified Data Item does not exist.
      */
     @Override
-    public void fetchData(String dataID, OutputStream outputStream) throws IOException, NoSuchDataItemException {
+    public void fetchData(String dataID, OutputStream outputStream) throws NoSuchDataItemException, IOException {
+        byte[] data = _dataMap.get(dataID) ;
 
+        if ( data == null ) {
+            throw new NoSuchDataItemException("Unable to fetch data item '" + dataID + "'");
+        }
+
+        outputStream.write(data);
     }
 
     /**
@@ -51,7 +76,13 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public void fetchData(String dataID, int offset, int length, OutputStream outputStream) throws IOException, NoSuchDataItemException {
+        byte[] data = _dataMap.get(dataID) ;
 
+        if ( data == null ) {
+            throw new NoSuchDataItemException("Unable to fetch data item '" + dataID + "'");
+        }
+
+        outputStream.write(data, offset, length);
     }
 
     /**
@@ -66,7 +97,8 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public boolean removeData(String dataID) throws IOException {
-        return false;
+        byte[] bytes = _dataMap.remove(dataID);
+        return bytes != null;
     }
 
     /**
@@ -80,6 +112,6 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public boolean hasData(String dataID) throws IOException {
-        return false;
+        return _dataMap.containsKey(dataID);
     }
 }
