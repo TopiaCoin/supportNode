@@ -1,5 +1,6 @@
 package io.topiacoin.node.storage.provider;
 
+import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import org.junit.Test;
 

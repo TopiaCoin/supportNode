@@ -53,6 +53,10 @@ public class HashUtilities {
 
         HashInfo hashInfo = new HashInfo(dataHash) ;
 
+        if ( dataStream.markSupported() ) {
+            dataStream.mark(Integer.MAX_VALUE);
+        }
+
         // Calculate the Hash of the dataStream
         MessageDigest digest = MessageDigest.getInstance(hashInfo.getAlgorithm());
 
@@ -63,6 +67,10 @@ public class HashUtilities {
         byte[] hash = digest.digest() ;
 
         boolean matches = Arrays.equals(hashInfo.getHash(), hash);
+
+        if ( dataStream.markSupported() ) {
+            dataStream.reset();
+        }
 
         return matches;
     }
@@ -100,6 +108,10 @@ public class HashUtilities {
     public static String generateHash(String algorithm, InputStream dataStream) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance(algorithm);
 
+        if ( dataStream.markSupported() ) {
+            dataStream.mark(Integer.MAX_VALUE);
+        }
+
         DigestInputStream dis = new DigestInputStream(dataStream, digest);
         byte[] buffer = new byte[8192];
         while ( dis.read(buffer) > 0) { }
@@ -108,6 +120,10 @@ public class HashUtilities {
 
         HashInfo hashInfo = new HashInfo(algorithm, hash) ;
         String dataHash = hashInfo.getEncoded();
+
+        if ( dataStream.markSupported()) {
+            dataStream.reset();
+        }
 
         return dataHash;
     }
