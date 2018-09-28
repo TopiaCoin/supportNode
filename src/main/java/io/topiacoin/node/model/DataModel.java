@@ -11,8 +11,6 @@ import io.topiacoin.node.exceptions.NotInitializedException;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import io.topiacoin.node.model.provider.MemoryDataModelProvider;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class DataModel {
@@ -44,8 +42,8 @@ public class DataModel {
 		__instance = new DataModel(config);
 	}
 
-	public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException {
-		return _provider.createContainer(id, expirationDate);
+	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException {
+		return _provider.createContainer(id, expirationDate, challenge);
 	}
 
 	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException {

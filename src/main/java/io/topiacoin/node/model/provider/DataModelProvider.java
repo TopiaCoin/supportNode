@@ -2,6 +2,7 @@ package io.topiacoin.node.model.provider;
 
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
+import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
@@ -15,7 +16,7 @@ import java.util.List;
 
 public interface DataModelProvider {
 
-	public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException;
+	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException;
 
 	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException;
 

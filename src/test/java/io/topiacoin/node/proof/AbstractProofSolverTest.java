@@ -19,11 +19,6 @@ public abstract class AbstractProofSolverTest {
     protected abstract DataStorageProvider getDataStorageProvider();
 
     @Test
-    public void testSanity() throws Exception {
-        fail("This test is not sane");
-    }
-
-    @Test
     public void testGenerateSolution() throws Exception {
 
         ProofSolver proofSolver = getProofSolver();

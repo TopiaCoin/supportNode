@@ -1,7 +1,11 @@
 package io.topiacoin.node.storage.provider;
 
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,8 +17,23 @@ public class MemoryDataStorageProvider implements DataStorageProvider {
 
     private Map<String, byte[]> _dataMap ;
 
+    private Log _log = LogFactory.getLog(this.getClass());
+
     public MemoryDataStorageProvider() {
         _dataMap = new HashMap<>();
+    }
+
+    @PostConstruct
+    public void initialize() {
+        _log.info ( "Initializing Memory Data Storage Provider" ) ;
+        _log.info ( "Initialized Memory Data Storage Provider" ) ;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        _log.info ( "Shutting Down Memory Data Storage Provider" ) ;
+        _log.info ( "Shut Down Memory Data Storage Provider" ) ;
+
     }
 
     /**

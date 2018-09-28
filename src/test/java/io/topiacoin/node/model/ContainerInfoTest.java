@@ -2,8 +2,9 @@ package io.topiacoin.node.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import java.util.ArrayList;
+
+import static junit.framework.TestCase.*;
 
 public class ContainerInfoTest {
 
@@ -13,6 +14,7 @@ public class ContainerInfoTest {
 
 		assertNull(container.getId());
 		assertEquals(0, container.getExpirationDate());
+		assertNull(container.getChallenge());
 	}
 
 	@Test
@@ -20,11 +22,13 @@ public class ContainerInfoTest {
 
 		String id = "abc-123";
 		long expirationDate = 1111L;
+		Challenge challenge = new Challenge(id, new ArrayList<>());
 
-		ContainerInfo container = new ContainerInfo(id, expirationDate);
+		ContainerInfo container = new ContainerInfo(id, expirationDate, challenge);
 
 		assertEquals(id, container.getId());
 		assertEquals(expirationDate, container.getExpirationDate());
+		assertEquals(challenge, container.getChallenge());
 	}
 
 	@Test
@@ -32,6 +36,7 @@ public class ContainerInfoTest {
 
 		String id = "abc-123";
 		long expirationDate = 1111L;
+		Challenge challenge = new Challenge(id, new ArrayList<>());
 
 		ContainerInfo container = new ContainerInfo();
 
@@ -46,6 +51,13 @@ public class ContainerInfoTest {
 		assertEquals(expirationDate, container.getExpirationDate());
 		container.setExpirationDate(0);
 		assertEquals(0, container.getExpirationDate());
+
+		assertNull(container.getChallenge());
+		container.setChallenge(challenge);
+		assertNotNull(container.getChallenge());
+		assertEquals(challenge, container.getChallenge());
+		container.setChallenge(null);
+		assertNull(container.getChallenge());
 	}
 
 	@Test
@@ -53,9 +65,10 @@ public class ContainerInfoTest {
 
 		String id = "abc-123";
 		long expirationDate = 1111L;
+		Challenge challenge = new Challenge(id, new ArrayList<>());
 
-		ContainerInfo container1 = new ContainerInfo(id, expirationDate);
-		ContainerInfo container2 = new ContainerInfo(id, expirationDate);
+		ContainerInfo container1 = new ContainerInfo(id, expirationDate, challenge);
+		ContainerInfo container2 = new ContainerInfo(id, expirationDate, challenge);
 
 		assertEquals(container1, container1);
 		assertEquals(container2, container2);

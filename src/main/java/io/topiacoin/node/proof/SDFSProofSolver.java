@@ -1,6 +1,8 @@
 package io.topiacoin.node.proof;
 
+import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import io.topiacoin.node.micronetwork.MicroNetworkManager;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ChallengeChunkInfo;
 import io.topiacoin.node.model.ChallengeSolution;
@@ -23,12 +25,19 @@ public class SDFSProofSolver implements ProofSolver {
 
     private Log _log = LogFactory.getLog(this.getClass());
 
-    DataStorageProvider _dataStorageProvider;
-    // TODO: Add the Micro Blockchain Manager reference
+    private DataStorageProvider _dataStorageProvider;
+    private MicroNetworkManager _microNetworkManager;
 
     @PostConstruct
     public void initialize() {
         _log.info ("Initializing the SDFS Proof Solver" ) ;
+
+        if ( _dataStorageProvider == null ) {
+            throw new InitializationException("Failed to initialize SDFS Proof Solver.  No Data Storage Provider configured" ) ;
+        }
+        if ( _microNetworkManager == null ) {
+            throw new InitializationException("Failed to initialize SDFS Proof Solver.  No Micro Network Manager configured" ) ;
+        }
         _log.info ("Initialized the SDFS Proof Solver" ) ;
     }
 
@@ -115,5 +124,16 @@ public class SDFSProofSolver implements ProofSolver {
             throw new RuntimeException("OMG!! Java doesn't support SHA-256 anymore!!", e);
         }
         return merkleRoot;
+    }
+
+    // -------- Accessor Methods --------
+
+
+    public void setDataStorageProvider(DataStorageProvider dataStorageProvider) {
+        _dataStorageProvider = dataStorageProvider;
+    }
+
+    public void setMicroNetworkManager(MicroNetworkManager microNetworkManager) {
+        _microNetworkManager = microNetworkManager;
     }
 }

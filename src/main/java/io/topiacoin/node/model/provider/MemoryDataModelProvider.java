@@ -2,6 +2,7 @@ package io.topiacoin.node.model.provider;
 
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
+import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
@@ -24,11 +25,11 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	private Map<String, MicroNetworkInfo> _microNetworkMap = new HashMap<>();
 	private Map<String, List<DataItemInfo>> _containerDataItemMap = new HashMap<>();
 
-	@Override public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException {
+	@Override public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException {
 		if(_containerMap.containsKey(id)) {
 			throw new ContainerAlreadyExistsException("Container with id " + id + " already exists");
 		}
-		ContainerInfo info = new ContainerInfo(id, expirationDate);
+		ContainerInfo info = new ContainerInfo(id, expirationDate, challenge);
 		_containerMap.put(id, info);
 		_containerDataItemMap.put(id, new ArrayList<>());
 		return info;

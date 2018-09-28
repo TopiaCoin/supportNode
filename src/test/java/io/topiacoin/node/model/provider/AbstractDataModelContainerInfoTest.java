@@ -2,16 +2,19 @@ package io.topiacoin.node.model.provider;
 
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
+import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataModel;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertNotEquals;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 
-public abstract class ContainerInfoTest {
+public abstract class AbstractDataModelContainerInfoTest {
 
     public abstract DataModel initDataModel();
 
@@ -24,62 +27,74 @@ public abstract class ContainerInfoTest {
 
     @Test
     public void testContainerInfoCRUD() throws Exception {
+        String containerID = "An ID";
+        long expirationDate = 11111L;
+
+        Challenge challenge = new Challenge(containerID, new ArrayList<>());
+
         ContainerInfo testContainer = new ContainerInfo();
-        testContainer.setId("An ID");
-        testContainer.setExpirationDate(11111L);
+        testContainer.setId(containerID);
+        testContainer.setExpirationDate(expirationDate);
+        testContainer.setChallenge(challenge);
 
         DataModel dataModel = initDataModel();
 
         try {
-            dataModel.getContainer("An ID");
+            dataModel.getContainer(containerID);
             fail();
         } catch (NoSuchContainerException e) {
             //Good
         }
 
-        ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate());
+        ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
+
+        assertEquals(createdContainer, testContainer);
+        assertEquals(containerID, createdContainer.getId());
+        assertEquals(expirationDate, createdContainer.getExpirationDate());
 
         ContainerInfo fetchedContainer = dataModel.getContainer(testContainer.getId());
 
-        assertEquals(createdContainer, testContainer);
         assertEquals(testContainer, fetchedContainer);
-        assertEquals(fetchedContainer, createdContainer);
+        assertEquals(createdContainer, fetchedContainer);
+        assertEquals(containerID, fetchedContainer.getId());
+        assertEquals(expirationDate, fetchedContainer.getExpirationDate());
 
-        assertEquals("An ID", testContainer.getId());
-        assertEquals(11111L, testContainer.getExpirationDate());
-        assertEquals("An ID", createdContainer.getId());
-        assertEquals(11111L, createdContainer.getExpirationDate());
-        assertEquals("An ID", fetchedContainer.getId());
-        assertEquals(11111L, fetchedContainer.getExpirationDate());
-
+        Challenge newChallenge = new Challenge(containerID, new ArrayList<>());
         testContainer.setExpirationDate(12345L);
+        testContainer.setChallenge(newChallenge);
 
         dataModel.updateContainer(testContainer);
 
         fetchedContainer = dataModel.getContainer(testContainer.getId());
-        assertEquals("An ID", fetchedContainer.getId());
+        assertEquals(containerID, fetchedContainer.getId());
         assertEquals(12345L, fetchedContainer.getExpirationDate());
+        assertEquals(newChallenge, fetchedContainer.getChallenge());
     }
 
     @Test
     public void testModifyingContainerInfoObjectsDoesNotModifyModel() throws Exception {
+        String containerID = "An ID";
+        Challenge challenge = new Challenge(containerID, new ArrayList<>());
+
         ContainerInfo testContainer = new ContainerInfo();
-        testContainer.setId("An ID");
+        testContainer.setId(containerID);
         testContainer.setExpirationDate(11111L);
+        testContainer.setChallenge(challenge);
 
         DataModel dataModel = initDataModel();
 
         try {
-            dataModel.getContainer("An ID");
+            dataModel.getContainer(containerID);
             fail();
         } catch (NoSuchContainerException e) {
             //Good
         }
 
-        ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate());
+        ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
 
         ContainerInfo fetchedContainer = dataModel.getContainer(testContainer.getId());
         fetchedContainer.setExpirationDate(12345L);
+        assertNotEquals(createdContainer, fetchedContainer);
 
         ContainerInfo fetchedContainer2 = dataModel.getContainer(testContainer.getId());
         assertNotEquals(fetchedContainer, fetchedContainer2);
@@ -87,21 +102,29 @@ public abstract class ContainerInfoTest {
 
     @Test(expected = ContainerAlreadyExistsException.class)
     public void testCreateDuplicateContainer() throws Exception {
+        String containerID = "An ID";
+        Challenge challenge = new Challenge(containerID, new ArrayList<>());
+
         ContainerInfo testContainer = new ContainerInfo();
-        testContainer.setId("An ID");
+        testContainer.setId(containerID);
         testContainer.setExpirationDate(11111L);
+        testContainer.setChallenge(challenge);
 
         DataModel dataModel = initDataModel();
 
-        dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate());
-        dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate());
+        dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
+        dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
     }
 
     @Test(expected = NoSuchContainerException.class)
     public void testUpdateNonExistentContainer() throws Exception {
+        String containerID = "An ID";
+        Challenge challenge = new Challenge(containerID, new ArrayList<>());
+
         ContainerInfo testContainer = new ContainerInfo();
         testContainer.setId("An ID");
         testContainer.setExpirationDate(11111L);
+        testContainer.setChallenge(challenge);
 
         DataModel dataModel = initDataModel();
 

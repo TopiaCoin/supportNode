@@ -12,7 +12,7 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public abstract class DataItemInfoTest {
+public abstract class AbstractDataModelDataItemInfoTest {
 
     public abstract DataModel initDataModel();
 
