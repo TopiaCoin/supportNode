@@ -1,4 +1,4 @@
-package io.topiacoin.node.storage.exceptions;
+package io.topiacoin.node.exceptions;
 
 import java.security.PrivilegedActionException;
 

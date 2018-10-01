@@ -3,7 +3,7 @@ package io.topiacoin.node.storage;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
-import io.topiacoin.node.storage.exceptions.CorruptDataItemException;
+import io.topiacoin.node.exceptions.CorruptDataItemException;
 import io.topiacoin.node.storage.provider.DataStorageProvider;
 import io.topiacoin.node.utilities.HashUtilities;
 import org.apache.commons.logging.Log;
