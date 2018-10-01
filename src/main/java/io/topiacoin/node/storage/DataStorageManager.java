@@ -8,6 +8,8 @@ import io.topiacoin.node.storage.provider.DataStorageProvider;
 import io.topiacoin.node.utilities.HashUtilities;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -18,10 +20,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 
+@Component
 public class DataStorageManager {
 
     private Log _log = LogFactory.getLog(this.getClass());
 
+    @Autowired
     private DataStorageProvider _dataStorageProvider ;
 
     @PostConstruct

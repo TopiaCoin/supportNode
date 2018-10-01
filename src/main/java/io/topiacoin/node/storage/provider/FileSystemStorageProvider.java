@@ -5,6 +5,7 @@ import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -19,7 +20,9 @@ public class FileSystemStorageProvider implements DataStorageProvider {
 
     private Log _log = LogFactory.getLog(this.getClass());
 
+    @Autowired
     private String storageBasePath;
+
     private File storageBaseFile;
 
 

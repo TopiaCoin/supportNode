@@ -2,10 +2,12 @@ package io.topiacoin.node.micronetwork;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+@Component
 public class MicroNetworkManager {
 
     private Log _log = LogFactory.getLog(this.getClass());

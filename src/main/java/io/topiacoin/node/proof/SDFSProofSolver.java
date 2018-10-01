@@ -10,6 +10,8 @@ import io.topiacoin.node.storage.provider.DataStorageProvider;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -21,11 +23,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class SDFSProofSolver implements ProofSolver {
 
     private Log _log = LogFactory.getLog(this.getClass());
 
+    @Autowired
     private DataStorageProvider _dataStorageProvider;
+
+    @Autowired
     private MicroNetworkManager _microNetworkManager;
 
     @PostConstruct
