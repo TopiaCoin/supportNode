@@ -69,12 +69,12 @@ public class SDFSProofSolver implements ProofSolver {
 
     private String generateReplicateSolution(Challenge proofChallenge) {
         String merkleRoot = null;
-        List<byte[]> leaves = new ArrayList<>(proofChallenge.getChallengeChunks().size());
+        List<byte[]> leaves = new ArrayList<>(proofChallenge.getChunkRanges().size());
         try {
             // Generate the Pre Image of all of the chunks
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             int leafIndex = 0 ;
-            for (ChallengeChunkInfo info : proofChallenge.getChallengeChunks()) {
+            for (ChallengeChunkInfo info : proofChallenge.getChunkRanges()) {
                 digest.reset();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream(info.getLength());
                 DigestOutputStream dos = new DigestOutputStream(baos, digest);

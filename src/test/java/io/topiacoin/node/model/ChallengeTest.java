@@ -18,6 +18,6 @@ public class ChallengeTest {
         Challenge challenge = new Challenge(containerID, challengeChunks) ;
 
         assertEquals(containerID, challenge.getContainerID());
-        assertEquals(challengeChunks, challenge.getChallengeChunks());
+        assertEquals(challengeChunks, challenge.getChunkRanges());
     }
 }

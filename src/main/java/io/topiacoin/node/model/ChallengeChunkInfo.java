@@ -6,6 +6,9 @@ public class ChallengeChunkInfo {
     private int offset;
     private int length;
 
+    public ChallengeChunkInfo() {
+    }
+
     public ChallengeChunkInfo(String chunkID, int offset, int length) {
         this.chunkID = chunkID;
         this.offset = offset;
@@ -22,5 +25,14 @@ public class ChallengeChunkInfo {
 
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public String toString() {
+        return "ChallengeChunkInfo{" +
+                "chunkID='" + chunkID + '\'' +
+                ", offset=" + offset +
+                ", length=" + length +
+                '}';
     }
 }

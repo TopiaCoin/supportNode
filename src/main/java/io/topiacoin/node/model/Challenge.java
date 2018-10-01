@@ -6,19 +6,22 @@ import java.util.Objects;
 
 public class Challenge {
     private String containerID;
-    private List<ChallengeChunkInfo> challengeChunks;
+    private List<ChallengeChunkInfo> chunkRanges;
+
+    public Challenge() {
+    }
 
     public Challenge(String containerID, List<ChallengeChunkInfo> challengeChunks) {
         this.containerID = containerID;
-        this.challengeChunks = new ArrayList<>(challengeChunks);
+        this.chunkRanges = new ArrayList<>(challengeChunks);
     }
 
     public String getContainerID() {
         return containerID;
     }
 
-    public List<ChallengeChunkInfo> getChallengeChunks() {
-        return challengeChunks;
+    public List<ChallengeChunkInfo> getChunkRanges() {
+        return chunkRanges;
     }
 
     @Override
@@ -27,20 +30,20 @@ public class Challenge {
         if (o == null || getClass() != o.getClass()) return false;
         Challenge challenge = (Challenge) o;
         return Objects.equals(containerID, challenge.containerID) &&
-                Objects.equals(challengeChunks, challenge.challengeChunks);
+                Objects.equals(chunkRanges, challenge.chunkRanges);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(containerID, challengeChunks);
+        return Objects.hash(containerID, chunkRanges);
     }
 
     @Override
     public String toString() {
         return "Challenge{" +
                 "containerID='" + containerID + '\'' +
-                ", challengeChunks=" + challengeChunks +
+                ", chunkRanges=" + chunkRanges +
                 '}';
     }
 }
