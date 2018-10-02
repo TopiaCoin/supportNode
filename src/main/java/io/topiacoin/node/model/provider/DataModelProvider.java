@@ -16,6 +16,10 @@ import java.util.List;
 
 public interface DataModelProvider {
 
+	public void initialize();
+
+	public void shutdown();
+
 	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException;
 
 	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException;
@@ -41,6 +45,4 @@ public interface DataModelProvider {
 	public MicroNetworkInfo getMicroNetwork(String id) throws NoSuchMicroNetworkException;
 
 	public void removeMicroNetwork(String id) throws NoSuchMicroNetworkException;
-
-	public void close();
 }

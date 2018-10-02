@@ -3,13 +3,13 @@ package io.topiacoin.node.model.provider.memory;
 import io.topiacoin.node.Configuration;
 import io.topiacoin.node.core.DefaultConfiguration;
 import io.topiacoin.node.model.DataModel;
-import io.topiacoin.node.model.provider.AbstractDataModelContainerInfoTest;
+import io.topiacoin.node.model.provider.AbstractDataModelDataItemInfoTest;
+import io.topiacoin.node.model.provider.AbstractDataModelMicroNetworkInfoTest;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import io.topiacoin.node.model.provider.MemoryDataModelProvider;
 import org.junit.After;
-import org.junit.Before;
 
-public class ContainerInfoMemoryTest extends AbstractDataModelContainerInfoTest {
+public class MicroNetowrkInfoMemoryTest extends AbstractDataModelMicroNetworkInfoTest {
 
     private DataModel _dataModel;
     private DataModelProvider _memoryDataModelProvider;

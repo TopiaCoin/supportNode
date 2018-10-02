@@ -14,14 +14,7 @@ import static org.junit.Assert.assertNotEquals;
 
 public abstract class AbstractDataModelDataItemInfoTest {
 
-    public abstract DataModel initDataModel();
-
-    public abstract void tearDownDataModel();
-
-    @After
-    public void destroy() {
-        tearDownDataModel();
-    }
+    public abstract DataModel getDataModel();
 
     @Test
     public void testDataItemInfoCRUD() throws Exception {
@@ -31,7 +24,7 @@ public abstract class AbstractDataModelDataItemInfoTest {
         testDataItem.setSize(1234);
         testDataItem.setDataHash("aHash");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getDataItem("An ID");
@@ -84,7 +77,7 @@ public abstract class AbstractDataModelDataItemInfoTest {
         testDataItem.setSize(1234);
         testDataItem.setDataHash("aHash");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getDataItem("An ID");
@@ -112,7 +105,7 @@ public abstract class AbstractDataModelDataItemInfoTest {
         testDataItem.setSize(1234);
         testDataItem.setDataHash("aHash");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.createDataItem(testDataItem.getId(), testDataItem.getContainerID(), testDataItem.getSize(), testDataItem.getDataHash());
         dataModel.createDataItem(testDataItem.getId(), testDataItem.getContainerID(), testDataItem.getSize(), testDataItem.getDataHash());
@@ -126,7 +119,7 @@ public abstract class AbstractDataModelDataItemInfoTest {
         testDataItem.setSize(1234);
         testDataItem.setDataHash("aHash");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.updateDataItem(testDataItem);
     }

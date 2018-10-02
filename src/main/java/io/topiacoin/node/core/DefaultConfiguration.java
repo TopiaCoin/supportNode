@@ -2,6 +2,7 @@ package io.topiacoin.node.core;
 
 import io.topiacoin.node.Configuration;
 import io.topiacoin.util.NotificationCenter;
+import org.springframework.stereotype.Component;
 
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorManager;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+@Component
 public class DefaultConfiguration implements Configuration {
 
     private final Properties DEFAULT_PROPERTIES = new Properties();

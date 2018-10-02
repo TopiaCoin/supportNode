@@ -10,37 +10,46 @@ import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.exceptions.NotInitializedException;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import io.topiacoin.node.model.provider.MemoryDataModelProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.List;
 
+@Component
 public class DataModel {
 
-	private static DataModel __instance;
+	private Log _log = LogFactory.getLog(this.getClass());
 
+	@Autowired
 	private DataModelProvider _provider;
 
-	protected DataModel(Configuration _config) {
-		if(_config != null) {
-			if (_config.getConfigurationOption("model.storage.type", "memory").equalsIgnoreCase("memory")) {
-				_provider = new MemoryDataModelProvider();
-			} else {
-				//_provider = new SQLiteDataModelProvider(_config);
-			}
-		} else {
-			throw new NotInitializedException();
-		}
+	@Autowired
+	private Configuration _configuration;
+
+	public DataModel() {
+		// NOOP
 	}
 
-	public static synchronized DataModel getInstance() {
-		if (__instance == null) {
-			throw new NotInitializedException();
-		}
-		return __instance;
+	// -------- Lifecycle Methods --------
+
+	@PostConstruct
+	public void initialize() {
+		_log.info ( "Initializing Data Model");
+		_log.info ( "Initialized Data Model");
 	}
 
-	public static synchronized void initialize(Configuration config) {
-		__instance = new DataModel(config);
+	@PreDestroy
+	public void shutdown() {
+		_log.info ( "Shutting Down Data Model");
+		_log.info ( "Shut Down Data Model");
 	}
+
+
+	// -------- Data Model Methods --------
 
 	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException {
 		return _provider.createContainer(id, expirationDate, challenge);
@@ -94,9 +103,14 @@ public class DataModel {
 		_provider.removeMicroNetwork(id);
 	}
 
-	public void close() {
-		_provider.close();
-		__instance = null;
+	// -------- Accessor Methods --------
+
+
+	public void setProvider(DataModelProvider provider) {
+		_provider = provider;
 	}
 
+	public void setConfiguration(Configuration configuration) {
+		_configuration = configuration;
+	}
 }

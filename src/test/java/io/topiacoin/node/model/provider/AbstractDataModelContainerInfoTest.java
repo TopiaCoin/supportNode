@@ -16,14 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 public abstract class AbstractDataModelContainerInfoTest {
 
-    public abstract DataModel initDataModel();
-
-    public abstract void tearDownDataModel();
-
-    @After
-    public void destroy() {
-        tearDownDataModel();
-    }
+    protected abstract DataModel getDataModel() ;
 
     @Test
     public void testContainerInfoCRUD() throws Exception {
@@ -37,7 +30,7 @@ public abstract class AbstractDataModelContainerInfoTest {
         testContainer.setExpirationDate(expirationDate);
         testContainer.setChallenge(challenge);
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getContainer(containerID);
@@ -81,7 +74,7 @@ public abstract class AbstractDataModelContainerInfoTest {
         testContainer.setExpirationDate(11111L);
         testContainer.setChallenge(challenge);
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getContainer(containerID);
@@ -110,7 +103,7 @@ public abstract class AbstractDataModelContainerInfoTest {
         testContainer.setExpirationDate(11111L);
         testContainer.setChallenge(challenge);
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
         dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
@@ -126,7 +119,7 @@ public abstract class AbstractDataModelContainerInfoTest {
         testContainer.setExpirationDate(11111L);
         testContainer.setChallenge(challenge);
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.updateContainer(testContainer);
     }

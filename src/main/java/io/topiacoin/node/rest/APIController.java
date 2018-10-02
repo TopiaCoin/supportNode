@@ -2,6 +2,8 @@ package io.topiacoin.node.rest;
 
 import io.topiacoin.node.BusinessLogic;
 import io.topiacoin.node.exceptions.BadRequestException;
+import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
+import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import org.apache.commons.logging.Log;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -54,17 +57,20 @@ public class APIController {
 
     @RequestMapping(value = "/container", method = RequestMethod.GET)
     public ContainerInfo getContainer(
-            @RequestParam("containerID") String containerID) {
+            @RequestParam("containerID") String containerID)
+            throws NoSuchContainerException {
 
         if (TextUtils.isBlank(containerID)) {
             throw new BadRequestException("ContainerID not specified.");
         }
-        return null;
+
+        return _businessLogic.getContainer(containerID);
     }
 
     @RequestMapping(value = "/container", method = RequestMethod.POST)
     public ResponseEntity<Void> createContainer(
-            @RequestBody ContainerCreationRequest creationRequest) {
+            @RequestBody ContainerCreationRequest creationRequest)
+            throws ContainerAlreadyExistsException {
 
         if (creationRequest == null) {
             throw new BadRequestException("Invalid Body.");
@@ -75,6 +81,9 @@ public class APIController {
         if (TextUtils.isBlank(creationRequest.containerID)) {
             throw new BadRequestException("ContainerID not specified.");
         }
+
+        _businessLogic.createContainer(creationRequest.containerID);
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -99,32 +108,56 @@ public class APIController {
     }
 
     @RequestMapping(value = "/chunk", method = RequestMethod.POST)
-    public ResponseEntity<Void> addChunk(String chunkID) {
-        _log.info ( "Adding Chunk " + chunkID ) ;
+    public ResponseEntity<Void> addChunk(
+            @RequestParam("chunkID") String chunkID,
+            HttpServletRequest request) {
+
+        if (TextUtils.isBlank(chunkID)) {
+            throw new BadRequestException("ChunkID not specified.");
+        }
+
+        _log.info("Adding Chunk " + chunkID);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/chunk", method = RequestMethod.HEAD)
-    public ResponseEntity<Void> hasChunk(String chunkID) {
-        _log.info ( "Checking on Chunk " + chunkID ) ;
+    public ResponseEntity<Void> hasChunk(
+            @RequestParam("chunkID") String chunkID) {
+
+        if (TextUtils.isBlank(chunkID)) {
+            throw new BadRequestException("ChunkID not specified.");
+        }
+
+        _log.info("Checking on Chunk " + chunkID);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value = "/chunk", method = RequestMethod.GET)
-    public void getChunk(String chunkID,
-                         HttpServletResponse response) throws IOException {
-        _log.info ( "Getting Chunk " + chunkID) ;
+    public void getChunk(
+            @RequestParam("chunkID") String chunkID,
+            HttpServletResponse response) throws IOException {
+
+        if (TextUtils.isBlank(chunkID)) {
+            throw new BadRequestException("ChunkID not specified.");
+        }
+
+        _log.info("Getting Chunk " + chunkID);
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "No Such Chunk");
     }
 
     @RequestMapping(value = "/challenge", method = RequestMethod.POST)
-    public ResponseEntity<Void> submitChallenge(@RequestBody Challenge challenge) {
-        _log.info ( "Received Challenge: " + challenge);
+    public ResponseEntity<Void> submitChallenge(
+            @RequestBody Challenge challenge) {
+
+        if (challenge == null) {
+            throw new BadRequestException("Challenge not specified.");
+        }
+
+        _log.info("Received Challenge: " + challenge);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     // -------- Accessor Methods --------
-
 
     public void setBusinessLogic(BusinessLogic businessLogic) {
         _businessLogic = businessLogic;

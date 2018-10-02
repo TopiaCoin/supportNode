@@ -5,7 +5,6 @@ import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.model.MicroNetworkInfo;
 import io.topiacoin.node.model.DataModel;
 import io.topiacoin.node.model.MicroNetworkState;
-import org.junit.After;
 import org.junit.Test;
 
 import static junit.framework.TestCase.fail;
@@ -14,14 +13,7 @@ import static org.junit.Assert.assertNotEquals;
 
 public abstract class AbstractDataModelMicroNetworkInfoTest {
 
-    public abstract DataModel initDataModel();
-
-    public abstract void tearDownDataModel();
-
-    @After
-    public void destroy() {
-        tearDownDataModel();
-    }
+    public abstract DataModel getDataModel();
 
     @Test
     public void testMicroNetworkInfoCRUD() throws Exception {
@@ -33,7 +25,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getMicroNetwork("An ID");
@@ -98,7 +90,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         try {
             dataModel.getMicroNetwork("An ID");
@@ -130,7 +122,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.createMicroNetwork(testMicroNetworkInfo.getId(), testMicroNetworkInfo.getContainerID(), testMicroNetworkInfo.getPath(), testMicroNetworkInfo.getState(), testMicroNetworkInfo.getRpcURL(), testMicroNetworkInfo.getP2pURL());
         dataModel.createMicroNetwork(testMicroNetworkInfo.getId(), testMicroNetworkInfo.getContainerID(), testMicroNetworkInfo.getPath(), testMicroNetworkInfo.getState(), testMicroNetworkInfo.getRpcURL(), testMicroNetworkInfo.getP2pURL());
@@ -146,7 +138,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
-        DataModel dataModel = initDataModel();
+        DataModel dataModel = getDataModel();
 
         dataModel.updateMicroNetwork(testMicroNetworkInfo);
     }

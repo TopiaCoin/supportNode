@@ -3,6 +3,8 @@ package io.topiacoin.node.storage.provider;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Profile("memory")
 public class MemoryDataStorageProvider implements DataStorageProvider {
 
     private Map<String, byte[]> _dataMap ;
