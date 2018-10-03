@@ -1,12 +1,13 @@
-package io.topiacoin.node.micronetwork;
+package io.topiacoin.node.micronetwork.providers;
 
+import io.topiacoin.node.micronetwork.providers.BlockchainProvider;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public abstract class AbstractBlockchainManagerTest {
+public abstract class AbstractBlockchainProviderTest {
 
-    protected abstract BlockchainManager getBlockchainManager();
+    protected abstract BlockchainProvider getBlockchainProvider();
 
     @Test
     public void testSanity() {

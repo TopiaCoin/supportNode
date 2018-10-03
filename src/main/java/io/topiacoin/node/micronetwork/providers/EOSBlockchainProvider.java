@@ -1,10 +1,10 @@
-package io.topiacoin.node.micronetwork;
+package io.topiacoin.node.micronetwork.providers;
 
 import io.topiacoin.node.model.MicroNetworkInfo;
 
 import java.util.concurrent.Future;
 
-public class EOSBlockchainManager implements BlockchainManager {
+public class EOSBlockchainProvider implements BlockchainProvider {
 
     @Override
     public void createBlockchain(String blockchainID) {
