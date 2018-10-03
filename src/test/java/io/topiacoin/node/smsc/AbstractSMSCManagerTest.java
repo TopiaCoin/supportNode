@@ -4,7 +4,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class SMSCManagerTest {
+public abstract class AbstractSMSCManagerTest {
+
+    protected abstract SMSCManager getSMSCManager() ;
 
     @Test
     public void testSanity() {

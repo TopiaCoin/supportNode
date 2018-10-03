@@ -1,29 +1,74 @@
 package io.topiacoin.node.smsc;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.stereotype.Component;
+public interface SMSCManager {
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+    /**
+     *
+     * @param containerID
+     * @param solution
+     * @param callback
+     */
+    void submitProofSolution(String containerID, String solution, Callback callback);
 
-@Component
-public class SMSCManager {
+    /**
+     *
+     * @param callback
+     */
+    void getContainers(Callback callback);
 
-    private Log _log = LogFactory.getLog(this.getClass());
+    /**
+     *
+     * @param containerID
+     * @param callback
+     */
+    void getContainerInfo(String containerID, Callback callback);
 
-    // -------- Lifecycle Methods --------
+    /**
+     *
+     * @param containerID
+     * @param callback
+     */
+    void getNodesForContainer(String containerID, Callback callback);
 
-    @PostConstruct
-    public void initialize() {
-        _log.info("Initializing SMSC Manager" ) ;
-        _log.info("Initialized SMSC Manager" ) ;
+    /**
+     *
+     * @param callback
+     */
+    void registerNode(Callback callback);
+
+    /**
+     *
+     * @param callback
+     */
+    void unregisterNode(Callback callback);
+
+    /**
+     *
+     * @param stakingAccount
+     */
+    void setStakingAccount(String stakingAccount);
+
+    /**
+     *
+     * @param signingAccount
+     */
+    void setSigningAccount(String signingAccount);
+
+    /**
+     *
+     * @param callback
+     */
+    void getAssignedDisputes(Callback callback);
+
+    /**
+     *
+     * @param disputeID
+     * @param ruling
+     * @param callback
+     */
+    void sendDisputeResolution(String disputeID, String ruling, Callback callback);
+    
+    public static class Callback {
+        
     }
-
-    @PreDestroy
-    public void shutdown () {
-        _log.info("Shutting Down SMSC Manager" ) ;
-        _log.info("Shut Down SMSC Manager" ) ;
-    }
-
 }

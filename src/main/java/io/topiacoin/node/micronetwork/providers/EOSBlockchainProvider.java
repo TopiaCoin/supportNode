@@ -1,10 +1,15 @@
 package io.topiacoin.node.micronetwork.providers;
 
+import io.topiacoin.eosrpcadapter.EOSRPCAdapter;
 import io.topiacoin.node.model.MicroNetworkInfo;
 
 import java.util.concurrent.Future;
 
 public class EOSBlockchainProvider implements BlockchainProvider {
+
+    private EOSRPCAdapter _eosRpcAdapter;
+
+    // -------- Public Methods --------
 
     @Override
     public void createBlockchain(String blockchainID) {
@@ -34,5 +39,12 @@ public class EOSBlockchainProvider implements BlockchainProvider {
     @Override
     public MicroNetworkInfo getBlockchainInfo(String blockchainID) {
         return null;
+    }
+
+    // -------- Accessor Methods --------
+
+
+    public void setEosRpcAdapter(EOSRPCAdapter eosRpcAdapter) {
+        _eosRpcAdapter = eosRpcAdapter;
     }
 }

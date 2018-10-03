@@ -78,11 +78,15 @@ public class APIController {
 
         _log.info("Creation request: " + creationRequest);
 
-        if (TextUtils.isBlank(creationRequest.containerID)) {
+        if (TextUtils.isBlank(creationRequest.getContainerID())) {
             throw new BadRequestException("ContainerID not specified.");
         }
 
-        _businessLogic.createContainer(creationRequest.containerID);
+        try {
+            _businessLogic.createContainer(creationRequest.getContainerID());
+        } catch (NoSuchContainerException e) {
+            throw new BadRequestException("The container ID (" + creationRequest.getContainerID() + ") is not valid." ) ;
+        }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -97,10 +101,10 @@ public class APIController {
 
         _log.info("Replication request: " + replicationRequest);
 
-        if (TextUtils.isBlank(replicationRequest.containerID)) {
+        if (TextUtils.isBlank(replicationRequest.getContainerID())) {
             throw new BadRequestException("ContainerID not specified.");
         }
-        if (TextUtils.isBlank(replicationRequest.peerNodeID)) {
+        if (TextUtils.isBlank(replicationRequest.getPeerNodeID())) {
             throw new BadRequestException("Peer Node ID not specified.");
         }
 

@@ -1,11 +1,13 @@
 package io.topiacoin.node;
 
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
+import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.micronetwork.MicroNetworkManager;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataModel;
+import io.topiacoin.node.model.MicroNetworkInfo;
 import io.topiacoin.node.proof.ProofSolver;
 import io.topiacoin.node.smsc.SMSCManager;
 import io.topiacoin.node.storage.DataStorageManager;
@@ -44,6 +46,14 @@ public class BusinessLogic {
     @PostConstruct
     public void initialize() {
         _log.info("Initializing Business Logic");
+
+        if ( _dataStorageManager == null ||
+                _dataModel == null ||
+                _smscManager == null ||
+                _proofSolver == null ||
+                _microNetworkManager == null ) {
+            throw new InitializationException("Business Logic is missing required components" ) ;
+        }
         _log.info("Initialized Business Logic");
     }
 
@@ -67,13 +77,29 @@ public class BusinessLogic {
     }
 
     public ContainerInfo createContainer(String containerID)
-            throws ContainerAlreadyExistsException {
+            throws ContainerAlreadyExistsException, NoSuchContainerException {
 
         ContainerInfo containerInfo = null;
 
-        // TODO - Check to see if this container ID is assigned to this node.
-        // Check to see if we are already hosting a micronetwork for this container ID
-        // Create the new Micronetwork for the container
+        // Check the Data Model to see if this container ID is assigned to the this node.
+        containerInfo = _dataModel.getContainer(containerID) ;
+        if ( containerInfo == null ) {
+            // If no info in Data Model, check the SMSC to see if this container ID is assigned to this node.
+            _smscManager.getContainerInfo(containerID, null);
+        }
+        if ( containerInfo == null ) {
+            throw new NoSuchContainerException("The specified container ID is not valid.");
+        }
+        // If we should be hosting this container, check the MNM to see if we are already hosting a micronetwork for this container ID
+        MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        if ( microNetworkInfo != null ) {
+            throw new ContainerAlreadyExistsException("The specified container has already been created" ) ;
+        }
+        // If we are not yet hosting the continer, create the new Micronetwork for the container
+        _microNetworkManager.createBlockchain(containerID);
+        microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+
+        // Save the Container Info to the Data Model
 
         return containerInfo;
     }

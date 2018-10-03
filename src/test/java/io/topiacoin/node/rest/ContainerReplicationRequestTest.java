@@ -7,7 +7,25 @@ import static junit.framework.TestCase.*;
 public class ContainerReplicationRequestTest {
 
     @Test
-    public void testSanity() {
-        fail ( "This test isn't sane!") ;
+    public void testDefaultConstructor() throws Exception {
+
+        ContainerReplicationRequest request = new ContainerReplicationRequest();
+
+        assertNull(request.getContainerID());
+        assertNull(request.getPeerNodeID());
     }
+
+    @Test
+    public void testAccessors() throws Exception {
+
+        String containerID = "0xdeadbeef";
+        String peerID = "fredflintstone";
+
+        ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
+
+        assertEquals(containerID, request.getContainerID());
+        assertEquals(peerID, request.getPeerNodeID());
+
+    }
+
 }
