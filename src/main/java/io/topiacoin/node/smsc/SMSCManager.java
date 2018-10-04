@@ -1,74 +1,99 @@
 package io.topiacoin.node.smsc;
 
+import io.topiacoin.node.exceptions.NotRegisteredException;
+import io.topiacoin.node.model.ChallengeSolution;
+import io.topiacoin.node.model.ContainerInfo;
+import io.topiacoin.node.model.Dispute;
+
+import java.util.List;
+import java.util.concurrent.Future;
+
 public interface SMSCManager {
 
     /**
+     * Submits the solution to a Proof of Hosting/Replication to the SMSC for validation and payment.
      *
-     * @param containerID
-     * @param solution
-     * @param callback
+     * @param containerID The ID of the container to which the solution belongs.
+     * @param solution    The solution to the replication challenge for the specified container.
+     *
+     * @return A Future that can be used to wait for the completion of the proof submisison.
      */
-    void submitProofSolution(String containerID, String solution, Callback callback);
+    Future<?> submitProofSolution(String containerID, ChallengeSolution solution);
 
     /**
+     * Retrieves the list of container IDs assigned to this node from the SMSC.
      *
-     * @param callback
+     * @return A Future that will resolve with the List of Container IDs assigned to this node.
      */
-    void getContainers(Callback callback);
+    Future<List<String>> getContainers() throws NotRegisteredException;
 
     /**
+     * Retrieves the Container Information for the specified container from the SMSC.
      *
-     * @param containerID
-     * @param callback
+     * @param containerID The ID of the container whose information is being retrieved.
+     *
+     * @return A Future that will resolve to the Container Info of the requested container.   The future will throw an
+     * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
-    void getContainerInfo(String containerID, Callback callback);
+    Future<ContainerInfo> getContainerInfo(String containerID)throws NotRegisteredException;
 
     /**
+     * Retrieves the list of Node IDs that are assigned to the specified container from the SMSC.
      *
-     * @param containerID
-     * @param callback
+     * @param containerID The ID of the container whose node list is being retrieved.
+     *
+     * @return A Future that will resolve to the List of Nodes assigned to the container ID.  The future will throw an
+     * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
-    void getNodesForContainer(String containerID, Callback callback);
+    Future<List<String>> getNodesForContainer(String containerID)throws NotRegisteredException;
 
     /**
+     * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
+     * configured staking account.
      *
-     * @param callback
+     * @return A Future that can be used to wait for the completion of the registration process.
      */
-    void registerNode(Callback callback);
+    Future<?> registerNode();
 
     /**
+     * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
+     * transfer of any containers hosted on this node to other containers to maintain availability of end user data.
      *
-     * @param callback
+     * @return A Future that can be used to wait for the completion of the unregistration process.
      */
-    void unregisterNode(Callback callback);
+    Future<?> unregisterNode()throws NotRegisteredException;
 
     /**
+     * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet
+     * should contain the keys for this account to insure that transactions can be properly signed.
      *
-     * @param stakingAccount
+     * @param stakingAccount The ID of the account to use for staking tokens.
      */
     void setStakingAccount(String stakingAccount);
 
     /**
+     * The ID of the account that should be used for signing normal transactions to the SMSC.  The configured blockchain
+     * wallet should contain the keys for this account to insure that transactions are properly signed.
      *
-     * @param signingAccount
+     * @param signingAccount The ID of the account to use for signing transactions.
      */
     void setSigningAccount(String signingAccount);
 
     /**
+     * Retrieves a list of disputes that are assigned to this node that have not been handled yet.
      *
-     * @param callback
+     * @return A Future that will resolve to the list of Disputes assigned to this node.
      */
-    void getAssignedDisputes(Callback callback);
+    Future<List<Dispute>> getAssignedDisputes()throws NotRegisteredException;
 
     /**
+     * Submits a ruling on a dispute to the SMSC.
      *
-     * @param disputeID
-     * @param ruling
-     * @param callback
+     * @param disputeID The ID of the dispute for which a ruling is being submitted.
+     * @param ruling    The dispute ruling being submitted.
+     *
+     * @return A Future that can be used to wait for the completion of the dispute resolution submission.
      */
-    void sendDisputeResolution(String disputeID, String ruling, Callback callback);
-    
-    public static class Callback {
-        
-    }
+    Future<?> sendDisputeResolution(String disputeID, String ruling)throws NotRegisteredException;
+
 }

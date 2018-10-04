@@ -20,6 +20,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @Component
 public class BusinessLogic {
@@ -85,7 +87,21 @@ public class BusinessLogic {
         containerInfo = _dataModel.getContainer(containerID) ;
         if ( containerInfo == null ) {
             // If no info in Data Model, check the SMSC to see if this container ID is assigned to this node.
-            _smscManager.getContainerInfo(containerID, null);
+            try {
+                Future<ContainerInfo> containerInfoFuture = _smscManager.getContainerInfo(containerID);
+                containerInfo = containerInfoFuture.get();
+
+                // Save the Container Info to the Data Model
+                containerInfo = _dataModel.createContainer(containerInfo.getId(), containerInfo.getExpirationDate(), containerInfo.getChallenge());
+            } catch (InterruptedException e) {
+                _log.info ( "Interrupted while getting container info from the SMSC", e ) ;
+                // If we have been interrupted, then assume the call to the SMSC failed and proceed
+                // with the null containerInfo.
+            } catch (ExecutionException e) {
+                _log.info ( "Exception getting container info from the SMSC", e ) ;
+                // The retrieval of info from the SMSC has failed.
+                // Proceed with the null containerInfo and let the rest of the code react accordingly.
+            }
         }
         if ( containerInfo == null ) {
             throw new NoSuchContainerException("The specified container ID is not valid.");
@@ -98,8 +114,6 @@ public class BusinessLogic {
         // If we are not yet hosting the continer, create the new Micronetwork for the container
         _microNetworkManager.createBlockchain(containerID);
         microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
-
-        // Save the Container Info to the Data Model
 
         return containerInfo;
     }
