@@ -63,7 +63,7 @@ public class DataStorageManager {
      * @throws CorruptDataItemException       If the provided data item doesn't match its cryptographic hash.
      * @throws IOException                    If their is an exception saving the data item.
      */
-    void saveData(String dataID, String containerID, String dataHash, InputStream dataStream)
+    public void saveData(String dataID, String containerID, String dataHash, InputStream dataStream)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
         if ( hasData(dataID, containerID)) {
             throw new DataItemAlreadyExistsException("The specified data item already exists. (ID: " + dataID + ", Container: " + containerID + ")");
@@ -97,7 +97,7 @@ public class DataStorageManager {
      * @throws CorruptDataItemException       If the provided data item doesn't match its cryptographic hash.
      * @throws IOException                    If there is an exception saving the data item.
      */
-    void saveData(String dataID, String containerID, String dataHash, byte[] data)
+    public void saveData(String dataID, String containerID, String dataHash, byte[] data)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
         saveData(dataID, containerID, dataHash, new ByteArrayInputStream(data));
     }
@@ -117,7 +117,7 @@ public class DataStorageManager {
      * @throws CorruptDataItemException If the specified data item doesn't match its cryptographic hash.
      * @throws IOException              If there is an exception reading the data item.
      */
-    byte[] fetchData(String dataID, String containerID, String dataHash)
+    public byte[] fetchData(String dataID, String containerID, String dataHash)
             throws IOException, NoSuchDataItemException, CorruptDataItemException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -150,7 +150,7 @@ public class DataStorageManager {
      * @throws CorruptDataItemException If the specified data item doesn't match its cryptographic hash.
      * @throws IOException              If there is an exception reading the data item.
      */
-    void fetchData(String dataID, String containerID, String dataHash, OutputStream outputStream)
+    public void fetchData(String dataID, String containerID, String dataHash, OutputStream outputStream)
             throws IOException, NoSuchDataItemException, CorruptDataItemException {
 
         byte[] data = fetchData(dataID, containerID, dataHash) ;
@@ -179,7 +179,7 @@ public class DataStorageManager {
      * @throws IOException             If there is an exception reading the data item.
      * @throws NoSuchDataItemException If the specified data item does not exist in the specified container.
      */
-    byte[] fetchDataSubset(String dataID, String containerID, int offset, int length)
+    public byte[] fetchDataSubset(String dataID, String containerID, int offset, int length)
             throws IOException, NoSuchDataItemException {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -203,7 +203,7 @@ public class DataStorageManager {
      *
      * @throws IOException If there is an exception removing the data item.
      */
-    boolean removeData(String dataID, String containerID)
+    public boolean removeData(String dataID, String containerID)
             throws IOException {
         return _dataStorageProvider.removeData(dataID);
     }
@@ -216,7 +216,7 @@ public class DataStorageManager {
      *
      * @throws IOException If there is an exception removing the data items.
      */
-    void removeData(String containerID)
+    public void removeData(String containerID)
             throws IOException {
         // TODO - Implement this method
     }
@@ -235,7 +235,7 @@ public class DataStorageManager {
      *
      * @throws IOException If there is an exception checking the existence of the specified data item.
      */
-    boolean hasData(String dataID, String containerID)
+    public boolean hasData(String dataID, String containerID)
             throws IOException {
         return _dataStorageProvider.hasData(dataID);
     }
