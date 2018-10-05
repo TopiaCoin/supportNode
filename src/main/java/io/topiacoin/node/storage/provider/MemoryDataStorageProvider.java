@@ -3,7 +3,6 @@ package io.topiacoin.node.storage.provider;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +49,7 @@ public class MemoryDataStorageProvider implements DataStorageProvider {
      * @throws IOException If there is an exception trying to save the data.
      */
     @Override
-    public void saveData(String dataID, InputStream dataStream) throws IOException {
+    public long saveData(String dataID, InputStream dataStream) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         byte[] buffer = new byte[16384] ;
@@ -62,6 +61,7 @@ public class MemoryDataStorageProvider implements DataStorageProvider {
         byte[] data = baos.toByteArray();
 
         _dataMap.put (dataID, data) ;
+        return bytesRead;
     }
 
     /**

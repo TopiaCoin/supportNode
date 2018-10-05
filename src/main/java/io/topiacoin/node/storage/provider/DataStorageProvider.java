@@ -16,7 +16,7 @@ public interface DataStorageProvider {
      *
      * @throws IOException If there is an exception trying to save the data.
      */
-    void saveData(String dataID, InputStream dataStream) throws IOException;
+    long saveData(String dataID, InputStream dataStream) throws IOException;
 
     /**
      * Retrieves the data item from persistent storage and writes to to the given outputStream.  If the data item is not

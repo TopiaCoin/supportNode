@@ -7,6 +7,7 @@ import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.Dispute;
+import io.topiacoin.node.model.NodeConnectionInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -68,7 +68,7 @@ public class EOSSMSCManager implements SMSCManager {
      * @return A Future that can be used to wait for the completion of the proof submisison.
      */
     @Override
-    public Future<?> submitProofSolution(String containerID, ChallengeSolution solution)
+    public Future<Void> submitProofSolution(String containerID, ChallengeSolution solution)
             throws NotRegisteredException {
         return null;
     }
@@ -166,12 +166,12 @@ public class EOSSMSCManager implements SMSCManager {
      * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
     @Override
-    public Future<List<String>> getNodesForContainer(String containerID)
+    public Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)
             throws NotRegisteredException {
 
-        Future<List<String>> future = _executorService.submit(() -> {
+        Future<List<NodeConnectionInfo>> future = _executorService.submit(() -> {
 
-            List<String> nodeIDs = new ArrayList<>();
+            List<NodeConnectionInfo> nodeInfoList = new ArrayList<>();
 
             // TODO - Search the Container/Node Assignment table by containerID to get a list of all of the Node IDs to which the container is assigned.
             String scope = contract;
@@ -183,13 +183,14 @@ public class EOSSMSCManager implements SMSCManager {
             boolean json = true;
             TableRows tableRows = _eosRPCAdapter.chain().getTableRows(contract, scope, table, key, lowerBound, upperBound, limit, json);
 
-            // TODO - Grab the Node ID from the Table Row, if it is assigned to the Container.
+            // TODO - Grab the Node Info from the Table Row, if it is assigned to the Container.
 
-            return nodeIDs;
+            return nodeInfoList;
         });
 
         return future;
     }
+
 
     /**
      * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
@@ -198,7 +199,7 @@ public class EOSSMSCManager implements SMSCManager {
      * @return A Future that can be used to wait for the completion of the registration process.
      */
     @Override
-    public Future<?> registerNode() {
+    public Future<Void> registerNode() {
         // Set the NodeID assigned to this node on registration.
         return null;
     }
@@ -210,7 +211,7 @@ public class EOSSMSCManager implements SMSCManager {
      * @return A Future that can be used to wait for the completion of the unregistration process.
      */
     @Override
-    public Future<?> unregisterNode()
+    public Future<Void> unregisterNode()
             throws NotRegisteredException {
         // Cancel all pending operations
         // Shutdown the Executor
@@ -260,7 +261,7 @@ public class EOSSMSCManager implements SMSCManager {
      * @return A Future that can be used to wait for the completion of the dispute resolution submission.
      */
     @Override
-    public Future<?> sendDisputeResolution(String disputeID, String ruling)
+    public Future<Void> sendDisputeResolution(String disputeID, String ruling)
             throws NotRegisteredException {
         return null;
     }

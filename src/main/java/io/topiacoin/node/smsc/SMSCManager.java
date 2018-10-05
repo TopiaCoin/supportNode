@@ -4,6 +4,7 @@ import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.Dispute;
+import io.topiacoin.node.model.NodeConnectionInfo;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -18,7 +19,7 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the proof submisison.
      */
-    Future<?> submitProofSolution(String containerID, ChallengeSolution solution);
+    Future<Void> submitProofSolution(String containerID, ChallengeSolution solution);
 
     /**
      * Retrieves the list of container IDs assigned to this node from the SMSC.
@@ -45,7 +46,7 @@ public interface SMSCManager {
      * @return A Future that will resolve to the List of Nodes assigned to the container ID.  The future will throw an
      * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
-    Future<List<String>> getNodesForContainer(String containerID)throws NotRegisteredException;
+    Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)throws NotRegisteredException;
 
     /**
      * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
@@ -53,7 +54,7 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the registration process.
      */
-    Future<?> registerNode();
+    Future<Void> registerNode();
 
     /**
      * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
@@ -61,7 +62,7 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the unregistration process.
      */
-    Future<?> unregisterNode()throws NotRegisteredException;
+    Future<Void> unregisterNode()throws NotRegisteredException;
 
     /**
      * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet
@@ -94,6 +95,6 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the dispute resolution submission.
      */
-    Future<?> sendDisputeResolution(String disputeID, String ruling)throws NotRegisteredException;
+    Future<Void> sendDisputeResolution(String disputeID, String ruling)throws NotRegisteredException;
 
 }

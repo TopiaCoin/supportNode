@@ -2,15 +2,22 @@ package io.topiacoin.node;
 
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.CorruptDataItemException;
+import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.InitializationException;
+import io.topiacoin.node.exceptions.InvalidChallengeException;
+import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import io.topiacoin.node.exceptions.NoSuchNodeException;
 import io.topiacoin.node.micronetwork.MicroNetworkManager;
 import io.topiacoin.node.model.Challenge;
+import io.topiacoin.node.model.ChallengeSolution;
+import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.DataModel;
 import io.topiacoin.node.model.MicroNetworkInfo;
+import io.topiacoin.node.model.NodeConnectionInfo;
 import io.topiacoin.node.proof.ProofSolver;
 import io.topiacoin.node.smsc.SMSCManager;
 import io.topiacoin.node.storage.DataStorageManager;
@@ -24,6 +31,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -71,15 +79,26 @@ public class BusinessLogic {
 
     // -------- Business Logic Methods --------
 
-    public ContainerInfo getContainer(String containerID)
+    public ContainerConnectionInfo getContainer(String containerID)
             throws NoSuchContainerException {
 
+        ContainerConnectionInfo containerConnectionInfo = null;
         ContainerInfo containerInfo = null;
+        MicroNetworkInfo microNetworkInfo = null;
 
         // Fetch the Container Info for the requested container from the Data Model
         containerInfo = _dataModel.getContainer(containerID);
+        if (containerInfo == null) {
+            throw new NoSuchContainerException("The requested container (" + containerID + ") does not exist");
+        }
+        microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        if (microNetworkInfo == null) {
+            throw new NoSuchContainerException("The requested container (" + containerID + ") is not hosted on this node.");
+        }
 
-        return containerInfo;
+        containerConnectionInfo = new ContainerConnectionInfo(containerID, microNetworkInfo.getRpcURL(), microNetworkInfo.getP2pURL());
+
+        return containerConnectionInfo;
     }
 
     public ContainerInfo createContainer(String containerID)
@@ -124,24 +143,89 @@ public class BusinessLogic {
         return containerInfo;
     }
 
-    public ContainerInfo replicateContainer(String containerID, String peerNodeID) {
+    public ContainerInfo replicateContainer(String containerID, String peerNodeID) throws NoSuchContainerException, MicroNetworkAlreadyExistsException, NoSuchNodeException {
 
         ContainerInfo containerInfo = null;
 
-        // TODO - Check to see if this container ID is assigned to this node.
-        // Check to see if the the peerNode is assigned to this container ID.
-        // Check to see if we are already hosting a MicroNetwork for this container ID
-        // Replicate the MicroNetwork for the container from the peer Node.
+        try {
+            // TODO - Check to see if this container ID is assigned to this node.
+            containerInfo = _dataModel.getContainer(containerID);
+            if (containerInfo == null) {
+                Future<ContainerInfo> containerInfoFuture = _smscManager.getContainerInfo(containerID);
+                ;
+                containerInfo = containerInfoFuture.get();
+
+                if (containerInfo != null) {
+                    try {
+                        _dataModel.createContainer(containerInfo.getId(), containerInfo.getExpirationDate(), containerInfo.getChallenge());
+                    } catch (ContainerAlreadyExistsException e) {
+                        // NOOP - This might occur if an auto-sync has added it to the model while we were independently fetching it.
+                    }
+                }
+            }
+
+            if (containerInfo == null) {
+                throw new NoSuchContainerException("The specified container (" + containerID + ") does not exit");
+            }
+            // Check to see if we are already hosting a MicroNetwork for this container ID
+            MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+            if (microNetworkInfo != null) {
+                throw new MicroNetworkAlreadyExistsException("The specified container is already synced on this node");
+            }
+
+            // Check to see if the the peerNode is assigned to this container ID.
+            List<NodeConnectionInfo> nodesConnectionList = null;
+            Future<List<NodeConnectionInfo>> nodeInfoFuture = _smscManager.getNodesForContainer(containerID);
+            nodesConnectionList = nodeInfoFuture.get();
+
+            String p2pURL = null;
+            for (NodeConnectionInfo nodeConnectionInfo : nodesConnectionList) {
+                if (nodeConnectionInfo.getNodeID().equalsIgnoreCase(peerNodeID)) {
+                    p2pURL = nodeConnectionInfo.getP2PURL();
+                    break;
+                }
+            }
+
+            if (p2pURL == null) {
+                throw new NoSuchNodeException("The specified Peer Node (" + peerNodeID + ") does not exist for the specified container (" + containerID + ")");
+            }
+
+            // Replicate the MicroNetwork for the container from the peer Node.
+            Future syncFuture = _microNetworkManager.syncBlockchain(p2pURL, containerID);
+            syncFuture.get();
+
+            microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        } catch (InterruptedException e) {
+            _log.info("Container Syncing was interrupted");
+        } catch (ExecutionException e) {
+            _log.info("An Exception occurred syncing a container", e);
+        }
 
         return containerInfo;
 
     }
 
-    public void addChunk(String containerID, String chunkID, String dataHash, InputStream dataStream) {
+    public void storeChunk(String containerID, String chunkID, String dataHash, InputStream dataStream)
+            throws NoSuchContainerException, DataItemAlreadyExistsException, IOException, CorruptDataItemException {
+
+        DataItemInfo dataItemInfo = null;
+
+        // Check if this node is hosting the specified container
+        MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        if (microNetworkInfo == null) {
+            throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
+        }
 
         // Check to see if we already have this chunk for the specified container
+        if (_dataStorageManager.hasData(chunkID, containerID)) {
+            throw new DataItemAlreadyExistsException("The specified Data item already exists");
+        }
+
         // Add the chunk to the Data Storage Manager
+        long size = _dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream);
+
         // Add the chunk to the Data Model
+        _dataModel.createDataItem(chunkID, containerID, size, dataHash);
     }
 
     public boolean hasChunk(String containerID, String chunkID) {
@@ -167,16 +251,37 @@ public class BusinessLogic {
             }
             // Retrieve the chunk and write it to the provided output stream.
             _dataStorageManager.fetchData(chunkInfo.getId(), chunkInfo.getContainerID(), chunkInfo.getDataHash(), dataStream);
-        } catch ( IOException e ) {
-            _log.warn ( "IOException getting chunk " + chunkID, e ) ;
+        } catch (IOException e) {
+            _log.warn("IOException getting chunk " + chunkID, e);
         }
     }
 
-    public void submitChallenge(Challenge challenge) {
+    public void submitChallenge(Challenge challenge) throws NoSuchContainerException, InvalidChallengeException {
+
+        // Verify that we are actually hosing the container this challenege is for
+        ContainerInfo containerInfo = _dataModel.getContainer(challenge.getContainerID());
 
         // Verify that we can successfully solve the provided challenge
+        ChallengeSolution solution = _proofSolver.generateSolution(challenge);
+        if (solution == null) {
+            throw new InvalidChallengeException();
+        }
+
         // Store the Challenge in the data model
-        // Schedule submission of a solution to this challenge
+        containerInfo.setChallenge(challenge);
+        _dataModel.updateContainer(containerInfo);
+
+        // Submit the solution to this challenge to the SMSC
+        Future<?> solutionFuture = _smscManager.submitProofSolution(challenge.getContainerID(), solution);
+
+        try {
+            solutionFuture.get();
+        } catch (InterruptedException e) {
+            _log.info("Solution Submission was interrupted", e);
+        } catch (ExecutionException e) {
+            _log.info("Exception submitting solution", e);
+            // TODO - Schedule the Periodic Proof Executor to rerun the proof in the near future.
+        }
     }
 
 

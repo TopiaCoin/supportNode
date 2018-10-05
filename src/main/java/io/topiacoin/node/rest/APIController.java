@@ -5,6 +5,7 @@ import io.topiacoin.node.exceptions.BadRequestException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.model.Challenge;
+import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,7 +57,7 @@ public class APIController {
     }
 
     @RequestMapping(value = "/container", method = RequestMethod.GET)
-    public ContainerInfo getContainer(
+    public ContainerConnectionInfo getContainer(
             @RequestParam("containerID") String containerID)
             throws NoSuchContainerException {
 

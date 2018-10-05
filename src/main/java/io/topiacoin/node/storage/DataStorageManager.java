@@ -58,25 +58,30 @@ public class DataStorageManager {
      * @param dataHash    The cryptographic hash of this data item.
      * @param dataStream  The InputStream containing the raw bytes of the data item.
      *
+     * @return The size of the stored data item.
+     *
      * @throws DataItemAlreadyExistsException If a data item with the specified dataID already exists in the specified
      *                                        container.
      * @throws CorruptDataItemException       If the provided data item doesn't match its cryptographic hash.
      * @throws IOException                    If their is an exception saving the data item.
      */
-    public void saveData(String dataID, String containerID, String dataHash, InputStream dataStream)
+    public long saveData(String dataID, String containerID, String dataHash, InputStream dataStream)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
         if ( hasData(dataID, containerID)) {
             throw new DataItemAlreadyExistsException("The specified data item already exists. (ID: " + dataID + ", Container: " + containerID + ")");
         }
 
+        long size = -1 ;
         try {
             if ( ! HashUtilities.verifyHash(dataHash, dataStream) ) {
                 throw new CorruptDataItemException("The specified data item does not match the specified hash" );
             }
-            _dataStorageProvider.saveData(dataID, dataStream);
+            size = _dataStorageProvider.saveData(dataID, dataStream);
         } catch ( NoSuchAlgorithmException e ) {
             throw new CorruptDataItemException( "Unable to verify the data hash.", e) ;
         }
+
+        return size;
     }
 
     /**
