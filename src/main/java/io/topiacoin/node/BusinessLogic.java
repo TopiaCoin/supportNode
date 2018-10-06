@@ -217,15 +217,15 @@ public class BusinessLogic {
         }
 
         // Check to see if we already have this chunk for the specified container
-        if (_dataStorageManager.hasData(chunkID, containerID)) {
+        if (_dataStorageManager.hasData(chunkID)) {
             throw new DataItemAlreadyExistsException("The specified Data item already exists");
         }
 
         // Add the chunk to the Data Storage Manager
-        long size = _dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream);
+        long size = _dataStorageManager.saveData(chunkID, dataHash, dataStream);
 
         // Add the chunk to the Data Model
-        _dataModel.createDataItem(chunkID, containerID, size, dataHash);
+        _dataModel.createDataItem(chunkID, size, dataHash);
     }
 
     public boolean hasChunk(String containerID, String chunkID) {
@@ -242,15 +242,15 @@ public class BusinessLogic {
         try {
             // Check the Data Model to see if we have this chunk listed for this container ID
             DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
-            if (chunkInfo == null || !containerID.equalsIgnoreCase(chunkInfo.getContainerID())) {
+            if (chunkInfo == null) {
                 throw new NoSuchDataItemException("The requested Chunk does not exist");
             }
             // Check the Data Storage Manger to see if we have this chunk.
-            if (!_dataStorageManager.hasData(chunkID, containerID)) {
+            if (!_dataStorageManager.hasData(chunkID)) {
                 throw new NoSuchDataItemException("The Requested Chunk is not available");
             }
             // Retrieve the chunk and write it to the provided output stream.
-            _dataStorageManager.fetchData(chunkInfo.getId(), chunkInfo.getContainerID(), chunkInfo.getDataHash(), dataStream);
+            _dataStorageManager.fetchData(chunkInfo.getId(), chunkInfo.getDataHash(), dataStream);
         } catch (IOException e) {
             _log.warn("IOException getting chunk " + chunkID, e);
         }

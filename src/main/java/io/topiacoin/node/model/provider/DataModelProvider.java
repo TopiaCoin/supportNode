@@ -26,7 +26,13 @@ public interface DataModelProvider {
 
 	public ContainerInfo getContainer(String id) throws NoSuchContainerException;
 
-	public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException;
+	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException;
+
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException;
+
+	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException;
+
+	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException;
 
 	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException;
 

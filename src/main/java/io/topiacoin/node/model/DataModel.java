@@ -7,9 +7,7 @@ import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
-import io.topiacoin.node.exceptions.NotInitializedException;
 import io.topiacoin.node.model.provider.DataModelProvider;
-import io.topiacoin.node.model.provider.MemoryDataModelProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +61,20 @@ public class DataModel {
 		return _provider.getContainer(id);
 	}
 
-	public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException {
-		return _provider.createDataItem(id, containerID, size, dataHash);
+	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
+		_provider.addDataItemToContainer(dataItemID, containerID);
+	}
+
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException {
+		return _provider.removeDataItemFromContainer(dataItemID, containerID);
+	}
+
+	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException {
+		return _provider.isDataItemInContainer(dataItemID, containerID);
+	}
+
+	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException {
+		return _provider.createDataItem(id, size, dataHash);
 	}
 
 	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException {

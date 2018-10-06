@@ -12,7 +12,6 @@ public class DataItemInfoTest {
 		DataItemInfo container = new DataItemInfo();
 
 		assertNull(container.getId());
-		assertNull(container.getContainerID());
 		assertNull(container.getDataHash());
 		assertEquals(0, container.getSize());
 	}
@@ -25,10 +24,9 @@ public class DataItemInfoTest {
 		String dataHash = "potatoes";
 		long size = 1111L;
 
-		DataItemInfo container = new DataItemInfo(id, containerID, size, dataHash);
+		DataItemInfo container = new DataItemInfo(id, size, dataHash);
 
 		assertEquals(id, container.getId());
-		assertEquals(containerID, container.getContainerID());
 		assertEquals(dataHash, container.getDataHash());
 		assertEquals(size, container.getSize());
 	}
@@ -48,12 +46,6 @@ public class DataItemInfoTest {
 		assertEquals(id, container.getId());
 		container.setId(null);
 		assertNull(container.getId());
-
-		assertNull(container.getContainerID());
-		container.setContainerID(containerID);
-		assertEquals(containerID, container.getContainerID());
-		container.setContainerID(null);
-		assertNull(container.getContainerID());
 
 		assertNull(container.getDataHash());
 		container.setDataHash(dataHash);
@@ -76,8 +68,8 @@ public class DataItemInfoTest {
 		String dataHash = "potatoes";
 		long size = 1111L;
 
-		DataItemInfo container1 = new DataItemInfo(id, containerID, size, dataHash);
-		DataItemInfo container2 = new DataItemInfo(id, containerID, size, dataHash);
+		DataItemInfo container1 = new DataItemInfo(id, size, dataHash);
+		DataItemInfo container2 = new DataItemInfo(id, size, dataHash);
 
 		assertEquals(container1, container1);
 		assertEquals(container2, container2);

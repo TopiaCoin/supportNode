@@ -528,13 +528,13 @@ public class BusinessLogicTest {
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(false);
-        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andReturn((long) data.length);
-        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(false);
+        EasyMock.expect(_dataStorageManager.saveData(chunkID, dataHash, dataStream)).andReturn((long) data.length);
+        EasyMock.expect(_dataModel.createDataItem(chunkID, data.length, dataHash)).andReturn(dataItemInfo) ;
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -572,7 +572,7 @@ public class BusinessLogicTest {
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
@@ -621,11 +621,11 @@ public class BusinessLogicTest {
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(true);
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(true);
 //        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andReturn((long) data.length);
 //        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
 
@@ -670,13 +670,13 @@ public class BusinessLogicTest {
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID,containerID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(false);
-        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andReturn((long) data.length);
-        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(false);
+        EasyMock.expect(_dataStorageManager.saveData(chunkID, dataHash, dataStream)).andReturn((long) data.length);
+        EasyMock.expect(_dataModel.createDataItem(chunkID, data.length, dataHash)).andReturn(dataItemInfo) ;
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -719,12 +719,12 @@ public class BusinessLogicTest {
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(false);
-        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andThrow(new CorruptDataItemException("Data Item is Corrupt"));
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(false);
+        EasyMock.expect(_dataStorageManager.saveData(chunkID, dataHash, dataStream)).andThrow(new CorruptDataItemException("Data Item is Corrupt"));
 //        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
 
         // Switch the Mock Objects into Test Mode
@@ -785,12 +785,12 @@ public class BusinessLogicTest {
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
         MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash);
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(true);
-        _dataStorageManager.fetchData(chunkID, containerID, dataHash, outputStream);
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(true);
+        _dataStorageManager.fetchData(chunkID, dataHash, outputStream);
         EasyMock.expectLastCall().andAnswer(() -> {
             outputStream.write(data);
             return null;
@@ -830,7 +830,7 @@ public class BusinessLogicTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash);
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
@@ -912,12 +912,12 @@ public class BusinessLogicTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, containerID, data.length, dataHash);
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
-        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(true);
-        _dataStorageManager.fetchData(chunkID, containerID, dataHash, outputStream);
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(true);
+        _dataStorageManager.fetchData(chunkID, dataHash, outputStream);
         EasyMock.expectLastCall().andThrow(new CorruptDataItemException("Data Item Is Corrupt"));
 
         // Switch the Mock Objects into Test Mode
