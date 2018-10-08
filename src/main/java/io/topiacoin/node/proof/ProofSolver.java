@@ -5,5 +5,9 @@ import io.topiacoin.node.model.ChallengeSolution;
 
 public interface ProofSolver {
 
+    void initialize();
+
+    void shutdown();
+
     ChallengeSolution generateSolution(Challenge proofChallenge) ;
 }

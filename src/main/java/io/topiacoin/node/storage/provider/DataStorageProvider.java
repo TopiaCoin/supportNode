@@ -8,6 +8,10 @@ import java.io.OutputStream;
 
 public interface DataStorageProvider {
 
+    void initialize();
+
+    void shutdown();
+
     /**
      * Saves the given data item to persistent storage.
      *
