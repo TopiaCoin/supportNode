@@ -1,5 +1,6 @@
 package io.topiacoin.node.micronetwork;
 
+import io.topiacoin.node.micronetwork.providers.BlockchainProvider;
 import io.topiacoin.node.model.MicroNetworkInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,6 +15,8 @@ import java.util.concurrent.Future;
 public class MicroNetworkManager {
 
     private Log _log = LogFactory.getLog(this.getClass());
+
+    private BlockchainProvider _blockchainProvider;
 
     @PostConstruct
     public void initialize() {
@@ -63,4 +66,7 @@ public class MicroNetworkManager {
         return null;
     }
 
+    public void setBlockchainProvider(BlockchainProvider blockchainProvider) {
+        _blockchainProvider = blockchainProvider;
+    }
 }

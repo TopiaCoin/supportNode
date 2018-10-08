@@ -34,6 +34,7 @@ public class SDFSProofSolver implements ProofSolver {
     @Autowired
     private MicroNetworkManager _microNetworkManager;
 
+    @Override
     @PostConstruct
     public void initialize() {
         _log.info ("Initializing the SDFS Proof Solver" ) ;
@@ -47,6 +48,7 @@ public class SDFSProofSolver implements ProofSolver {
         _log.info ("Initialized the SDFS Proof Solver" ) ;
     }
 
+    @Override
     @PreDestroy
     public void shutdown() {
         _log.info ("Shutting Down the SDFS Proof Solver" ) ;

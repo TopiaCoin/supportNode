@@ -6,7 +6,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -87,7 +86,7 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      * @throws IOException If there is an exception trying to save the data.
      */
     @Override
-    public void saveData(String dataID, InputStream dataStream) throws IOException {
+    public long saveData(String dataID, InputStream dataStream) throws IOException {
 
         String path = generatePathForDataID(dataID);
         File dataPath = new File(storageBaseFile, path);
@@ -96,6 +95,8 @@ public class FileSystemStorageProvider implements DataStorageProvider {
         try (FileOutputStream fos = new FileOutputStream(dataPath)) {
             IOUtils.copy(dataStream, fos);
         }
+
+        return dataPath.length();
     }
 
     /**

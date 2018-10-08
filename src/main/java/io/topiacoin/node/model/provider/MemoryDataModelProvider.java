@@ -13,7 +13,6 @@ import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -81,11 +80,53 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException {
+	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
+		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
+		if ( dataItemInfo == null ) {
+			throw new NoSuchDataItemException("The specified data item does not exist" ) ;
+		}
+		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
+		if ( dataItemList == null ) {
+			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		}
+		if ( dataItemList.contains(dataItemInfo)) {
+			throw new DataItemAlreadyExistsException("The specified data item is already in the specified container" ) ;
+		}
+		dataItemList.add(dataItemInfo);
+	}
+
+	@Override
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException {
+		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
+		if ( dataItemInfo == null ) {
+			throw new NoSuchDataItemException("The specified data item does not exist" ) ;
+		}
+		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
+		if ( dataItemList == null ) {
+			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		}
+		return dataItemList.remove(dataItemInfo) ;
+	}
+
+	@Override
+	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException {
+		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
+		if ( dataItemInfo == null ) {
+			return false ;
+		}
+		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
+		if ( dataItemList == null ) {
+			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		}
+		return dataItemList.contains(dataItemInfo);
+	}
+
+	@Override
+	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException {
 		if(_dataItemMap.containsKey(id)) {
 			throw new DataItemAlreadyExistsException("DataItem with id " + id + " already exists");
 		}
-		DataItemInfo item = new DataItemInfo(id, containerID, size, dataHash);
+		DataItemInfo item = new DataItemInfo(id, size, dataHash);
 		_dataItemMap.put(id, item);
 		return item;
 	}
@@ -130,7 +171,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if (item == null) {
 			throw new NoSuchDataItemException("No dataItem exists with the requested ID");
 		}
-		_containerDataItemMap.get(item.getContainerID()).remove(item);
+//		_containerDataItemMap.get(item.getContainerID()).remove(item);
 		_dataItemMap.remove(id);
 	}
 
