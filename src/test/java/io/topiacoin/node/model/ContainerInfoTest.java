@@ -29,6 +29,12 @@ public class ContainerInfoTest {
 		assertEquals(id, container.getId());
 		assertEquals(expirationDate, container.getExpirationDate());
 		assertEquals(challenge, container.getChallenge());
+
+		ContainerInfo container2 = new ContainerInfo(id, expirationDate);
+
+		assertEquals(id, container2.getId());
+		assertEquals(expirationDate, container2.getExpirationDate());
+		assertNull(container2.getChallenge());
 	}
 
 	@Test

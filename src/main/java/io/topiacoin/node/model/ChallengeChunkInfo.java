@@ -1,5 +1,7 @@
 package io.topiacoin.node.model;
 
+import java.util.Objects;
+
 public class ChallengeChunkInfo {
 
     private String chunkID;
@@ -25,6 +27,22 @@ public class ChallengeChunkInfo {
 
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChallengeChunkInfo that = (ChallengeChunkInfo) o;
+        return offset == that.offset &&
+                length == that.length &&
+                Objects.equals(chunkID, that.chunkID);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(chunkID, offset, length);
     }
 
     @Override

@@ -10,6 +10,7 @@ public class DataItemInfo {
 	public DataItemInfo() {
 
 	}
+
 	public DataItemInfo(String id, long size, String dataHash) {
 		this.id = id;
 		this.size = size;
@@ -45,6 +46,7 @@ public class DataItemInfo {
 	public void setDataHash(String dataHash) {
 		this.dataHash = dataHash;
 	}
+
 
 	@Override public boolean equals(Object o) {
 		if (this == o)
