@@ -228,21 +228,45 @@ public class BusinessLogic {
         _dataModel.createDataItem(chunkID, size, dataHash);
     }
 
-    public boolean hasChunk(String containerID, String chunkID) {
+    public boolean hasChunk(String containerID, String chunkID)
+            throws NoSuchContainerException {
+
+        boolean found = true ;
 
         // Check the Data Model to see if we have this chunk listed for this container ID
-        // Check the Data Storage Manger to see if we have this chunk.
+        try {
+            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+            found &= (chunkInfo != null);
+        } catch ( NoSuchDataItemException e) {
+            found = false ;
+        }
 
-        return false;
+        if ( found ) {
+            found &= _dataModel.isDataItemInContainer(chunkID, containerID);
+        }
+
+        // Check the Data Storage Manger to see if we have this chunk.
+        if ( found ) {
+            try {
+                found &= _dataStorageManager.hasData(chunkID);
+            } catch (IOException e) {
+                found = false ;
+            }
+        }
+
+        return found;
     }
 
     public void getChunk(String containerID, String chunkID, OutputStream dataStream)
-            throws NoSuchDataItemException, CorruptDataItemException {
+            throws NoSuchDataItemException, CorruptDataItemException, NoSuchContainerException {
 
         try {
             // Check the Data Model to see if we have this chunk listed for this container ID
             DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
             if (chunkInfo == null) {
+                throw new NoSuchDataItemException("The requested Chunk does not exist");
+            }
+            if ( !_dataModel.isDataItemInContainer(chunkID, containerID)) {
                 throw new NoSuchDataItemException("The requested Chunk does not exist");
             }
             // Check the Data Storage Manger to see if we have this chunk.
