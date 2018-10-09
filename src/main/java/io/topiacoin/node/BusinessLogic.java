@@ -285,6 +285,27 @@ public class BusinessLogic {
         }
     }
 
+    public void removeChunk(String containerID, String chunkID)
+        throws NoSuchContainerException, NoSuchDataItemException {
+
+        try {
+            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+            if (chunkInfo == null) {
+                throw new NoSuchDataItemException("The requested Chunk does not exist");
+            }
+            if (!_dataModel.isDataItemInContainer(chunkID, containerID)) {
+                throw new NoSuchDataItemException("The requested Chunk does not exist");
+            }
+
+            if ( _dataModel.removeDataItemFromContainer(chunkID, containerID)) {
+                _dataStorageManager.removeData(chunkID);
+            }
+        } catch (IOException e) {
+            _log.warn("IOException removing chunk " + chunkID, e);
+        }
+    }
+
+
     public void submitChallenge(Challenge challenge) throws NoSuchContainerException, InvalidChallengeException {
 
         // Verify that we are actually hosing the container this challenege is for

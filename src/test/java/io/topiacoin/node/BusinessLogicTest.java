@@ -1153,6 +1153,19 @@ public class BusinessLogicTest {
         }
     }
 
+    // -------- removeChunk() --------
+
+    @Test
+    public void testRemoveChunk() throws Exception {
+        fail ( "Test Not Yet Implemented" ) ;
+    }
+
+    @Test
+    public void testRemoveNonExistentChunk() throws Exception {
+        fail ( "Test Not Yet Implemented" ) ;
+    }
+
+
     // -------- submitChallenge() --------
 
     @Test
