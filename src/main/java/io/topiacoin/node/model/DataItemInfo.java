@@ -4,23 +4,21 @@ import java.util.Objects;
 
 public class DataItemInfo {
 	private String id;
-	private String containerID;
 	private long size;
 	private String dataHash;
 
 	public DataItemInfo() {
 
 	}
-	public DataItemInfo(String id, String containerID, long size, String dataHash) {
+
+	public DataItemInfo(String id, long size, String dataHash) {
 		this.id = id;
-		this.containerID = containerID;
 		this.size = size;
 		this.dataHash = dataHash;
 	}
 
 	public DataItemInfo(DataItemInfo item) {
 		this.id = item.id;
-		this.containerID = item.containerID;
 		this.size = item.size;
 		this.dataHash = item.dataHash;
 	}
@@ -31,14 +29,6 @@ public class DataItemInfo {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public String getContainerID() {
-		return containerID;
-	}
-
-	public void setContainerID(String containerID) {
-		this.containerID = containerID;
 	}
 
 	public long getSize() {
@@ -57,6 +47,7 @@ public class DataItemInfo {
 		this.dataHash = dataHash;
 	}
 
+
 	@Override public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -65,12 +56,11 @@ public class DataItemInfo {
 		DataItemInfo that = (DataItemInfo) o;
 		return size == that.size &&
 				Objects.equals(id, that.id) &&
-				Objects.equals(containerID, that.containerID) &&
 				Objects.equals(dataHash, that.dataHash);
 	}
 
 	@Override public int hashCode() {
 
-		return Objects.hash(id, containerID, size, dataHash);
+		return Objects.hash(id, size, dataHash);
 	}
 }

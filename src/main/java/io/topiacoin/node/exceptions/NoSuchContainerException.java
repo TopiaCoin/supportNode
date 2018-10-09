@@ -1,7 +1,11 @@
 package io.topiacoin.node.exceptions;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 import java.security.PrivilegedActionException;
 
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "The requested container could not be found")
 public class NoSuchContainerException extends Exception {
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may

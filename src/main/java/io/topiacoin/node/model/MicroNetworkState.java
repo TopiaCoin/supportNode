@@ -1,18 +1,10 @@
 package io.topiacoin.node.model;
 
-public class MicroNetworkState {
+import java.util.Objects;
 
-	private String IDontUnderstandWhyThisNeedsToBeAClass;
-
-	public MicroNetworkState(String reallyItCouldJustBeAStringUnlessYouHaveSomeOtherIdea) {
-		IDontUnderstandWhyThisNeedsToBeAClass = reallyItCouldJustBeAStringUnlessYouHaveSomeOtherIdea;
-	}
-
-	public String getState() {
-		return IDontUnderstandWhyThisNeedsToBeAClass;
-	}
-
-	public void setState(String likeThisSeemsSoRedundantIDontGetIt) {
-		IDontUnderstandWhyThisNeedsToBeAClass = likeThisSeemsSoRedundantIDontGetIt;
-	}
+public enum MicroNetworkState {
+	STARTING,
+	RUNNING,
+	STOPPING,
+	STOPPED
 }

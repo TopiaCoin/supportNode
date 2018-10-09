@@ -1,12 +1,81 @@
 package io.topiacoin.node.storage.provider;
 
+import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+@Component
+@Profile("filesystem")
 public class FileSystemStorageProvider implements DataStorageProvider {
+
+    private Log _log = LogFactory.getLog(this.getClass());
+
+    @Autowired
+    private String storageBasePath;
+
+    private File storageBaseFile;
+
+
+    public FileSystemStorageProvider() {
+
+    }
+
+    @PostConstruct
+    public void initialize() {
+        _log.info ( "Initializing File System Storage Provider");
+
+
+        storageBaseFile = new File(storageBasePath) ;
+
+        boolean exists = storageBaseFile.exists() || storageBaseFile.mkdirs();
+        boolean readable = storageBaseFile.canRead();
+        boolean writable = storageBaseFile.canWrite();
+
+        _log.info ( "Storage Base Path: " + storageBasePath);
+        _log.info ( "        Exists   : " + exists);
+        _log.info ( "        Readable : " + readable);
+        _log.info ( "        Writable : " + writable);
+
+
+        // Attempt to create the storage base path if it doesn't exist.
+        if ( !exists) {
+            _log.warn ( "Unable to access or create the Storage Base Path" );
+            throw new InitializationException( "Failed to create the Storage Base Path Directory" ) ;
+        }
+
+
+        // Verify that we have read and write access to the storage base path.
+        if ( !readable ) {
+            _log.warn ( "Unable to read from the Storage Base Path" );
+            throw new InitializationException("Unable to read from the Storage Base Path") ;
+        }
+        if ( !writable ) {
+            _log.warn ( "Unable to write to the Storage Base Path" );
+            throw new InitializationException("Unable to write to the Storage Base Path") ;
+        }
+
+        _log.info ( "Initialized File System Storage Provider");
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        _log.info ( "Shutting Down File System Storage Provider");
+        _log.info ( "Shut Down File System Storage Provider");
+    }
 
     /**
      * Saves the given data item to persistent storage.
@@ -17,8 +86,17 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      * @throws IOException If there is an exception trying to save the data.
      */
     @Override
-    public void saveData(String dataID, InputStream dataStream) throws IOException {
+    public long saveData(String dataID, InputStream dataStream) throws IOException {
 
+        String path = generatePathForDataID(dataID);
+        File dataPath = new File(storageBaseFile, path);
+        dataPath.getParentFile().mkdirs();
+
+        try (FileOutputStream fos = new FileOutputStream(dataPath)) {
+            IOUtils.copy(dataStream, fos);
+        }
+
+        return dataPath.length();
     }
 
     /**
@@ -33,7 +111,16 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public void fetchData(String dataID, OutputStream outputStream) throws IOException, NoSuchDataItemException {
+        String path = generatePathForDataID(dataID) ;
+        File dataPath = new File(storageBaseFile, path);
 
+        if (! dataPath.exists() ) {
+            throw new NoSuchDataItemException("The requested Data Item does not exist");
+        }
+
+        try (FileInputStream fis = new FileInputStream(dataPath)) {
+            IOUtils.copy(fis, outputStream);
+        }
     }
 
     /**
@@ -51,7 +138,16 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public void fetchData(String dataID, int offset, int length, OutputStream outputStream) throws IOException, NoSuchDataItemException {
+        String path = generatePathForDataID(dataID) ;
+        File dataPath = new File(storageBaseFile, path);
 
+        if (! dataPath.exists() ) {
+            throw new NoSuchDataItemException("The requested Data Item does not exist");
+        }
+
+        try (FileInputStream fis = new FileInputStream(dataPath)) {
+            IOUtils.copyLarge(fis, outputStream, offset, length);
+        }
     }
 
     /**
@@ -66,7 +162,23 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public boolean removeData(String dataID) throws IOException {
-        return false;
+        String path = generatePathForDataID(dataID) ;
+        File dataPath = new File(storageBaseFile, path);
+
+        boolean deleted = dataPath.delete();
+
+        // Remove empty parent dirs
+        dataPath = dataPath.getParentFile();
+        do {
+            if ( ! dataPath.delete() ) {
+                // We couldn't delete this dir.  This means there are other files/directories in here.
+                // Thus, we also can't delete anything else up the tree either.
+                break;
+            }
+            dataPath = dataPath.getParentFile();
+        } while ( !dataPath.equals(storageBaseFile)) ;
+
+        return deleted;
     }
 
     /**
@@ -80,6 +192,38 @@ public class FileSystemStorageProvider implements DataStorageProvider {
      */
     @Override
     public boolean hasData(String dataID) throws IOException {
-        return false;
+        String path = generatePathForDataID(dataID) ;
+        File dataPath = new File(storageBaseFile, path);
+
+        boolean exists = dataPath.exists();
+
+        return exists;
+    }
+
+    // -------- Private Methods --------
+
+    private String generatePathForDataID(String dataID) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append ( dataID.substring(0,2)) ;
+        sb.append ( File.separator) ;
+        sb.append (dataID.substring(2, 4));
+        sb.append (File.separator);
+        sb.append ( dataID.substring(4, 6));
+        sb.append ( File.separator);
+        sb.append ( dataID.substring(6, 8)) ;
+        sb.append(File.separator);
+        sb.append ( dataID);
+
+        return sb.toString();
+    }
+
+
+
+    // -------- Accessor Methods --------
+
+
+    public void setStorageBasePath(String storageBasePath) {
+        this.storageBasePath = storageBasePath;
     }
 }

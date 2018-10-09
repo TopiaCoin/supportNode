@@ -2,8 +2,7 @@ package io.topiacoin.node.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class MicroNetworkInfoTest {
 
@@ -27,7 +26,7 @@ public class MicroNetworkInfoTest {
 		String path = "whatever";
 		String rpcURL = "rpcURL";
 		String p2pURL = "p2pURL";
-		MicroNetworkState state = new MicroNetworkState("State");
+		MicroNetworkState state = MicroNetworkState.STARTING;
 
 		MicroNetworkInfo info = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
 
@@ -47,7 +46,7 @@ public class MicroNetworkInfoTest {
 		String path = "whatever";
 		String rpcURL = "rpcURL";
 		String p2pURL = "p2pURL";
-		MicroNetworkState state = new MicroNetworkState("state");
+		MicroNetworkState state = MicroNetworkState.STARTING;
 
 		MicroNetworkInfo info = new MicroNetworkInfo();
 
@@ -92,21 +91,48 @@ public class MicroNetworkInfoTest {
 	public void testEqualsAndHashCode() throws Exception {
 
 		String id = "abc-123";
+		String id2 = "efg-456";
 		String containerID = "def-456";
+		String containerID2 = "zyx-987";
 		String path = "whatever";
+		String path2 = "whoever";
 		String rpcURL = "rpcURL";
+		String rpcURL2 = "rpcURL2";
 		String p2pURL = "p2pURL";
-		MicroNetworkState state = new MicroNetworkState("State");
+		String p2pURL2 = "p2pURL2";
+		MicroNetworkState state = MicroNetworkState.STARTING;
+		MicroNetworkState state2 = MicroNetworkState.RUNNING;
 
 		MicroNetworkInfo info1 = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
 		MicroNetworkInfo info2 = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
+
+		MicroNetworkInfo info3 = new MicroNetworkInfo(id2, containerID, path, state, rpcURL, p2pURL);
+		MicroNetworkInfo info4 = new MicroNetworkInfo(id, containerID2, path, state, rpcURL, p2pURL);
+		MicroNetworkInfo info5 = new MicroNetworkInfo(id, containerID, path2, state, rpcURL, p2pURL);
+		MicroNetworkInfo info6 = new MicroNetworkInfo(id, containerID, path, state2, rpcURL, p2pURL);
+		MicroNetworkInfo info7 = new MicroNetworkInfo(id, containerID, path, state, rpcURL2, p2pURL);
+		MicroNetworkInfo info8 = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL2);
 
 		assertEquals(info1, info1);
 		assertEquals(info2, info2);
 		assertEquals(info1, info2);
 		assertEquals(info2, info1);
 
+		assertNotEquals(info1, info3);
+		assertNotEquals(info1, info4);
+		assertNotEquals(info1, info5);
+		assertNotEquals(info1, info6);
+		assertNotEquals(info1, info7);
+		assertNotEquals(info1, info8);
+
 		assertEquals(info1.hashCode(), info2.hashCode());
+
+		assertNotEquals(info1.hashCode(), info3.hashCode());
+		assertNotEquals(info1.hashCode(), info4.hashCode());
+		assertNotEquals(info1.hashCode(), info5.hashCode());
+		assertNotEquals(info1.hashCode(), info6.hashCode());
+		assertNotEquals(info1.hashCode(), info7.hashCode());
+		assertNotEquals(info1.hashCode(), info8.hashCode());
 	}
 
 	@Test

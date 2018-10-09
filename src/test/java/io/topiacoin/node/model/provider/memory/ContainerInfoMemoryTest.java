@@ -3,18 +3,38 @@ package io.topiacoin.node.model.provider.memory;
 import io.topiacoin.node.Configuration;
 import io.topiacoin.node.core.DefaultConfiguration;
 import io.topiacoin.node.model.DataModel;
-import io.topiacoin.node.model.provider.ContainerInfoTest;
+import io.topiacoin.node.model.provider.AbstractDataModelContainerInfoTest;
+import io.topiacoin.node.model.provider.DataModelProvider;
+import io.topiacoin.node.model.provider.MemoryDataModelProvider;
+import org.junit.After;
+import org.junit.Before;
 
-public class ContainerInfoMemoryTest extends ContainerInfoTest {
+public class ContainerInfoMemoryTest extends AbstractDataModelContainerInfoTest {
 
-	@Override public DataModel initDataModel() {
-		Configuration config = new DefaultConfiguration();
-		config.setConfigurationOption("model.storage.type", "memory");
-		DataModel.initialize(config);
-		return DataModel.getInstance();
-	}
+    private DataModel _dataModel;
+    private DataModelProvider _memoryDataModelProvider;
 
-	@Override public void tearDownDataModel() {
-		DataModel.getInstance().close();
-	}
+    public DataModel getDataModel() {
+        _memoryDataModelProvider = new MemoryDataModelProvider();
+        _memoryDataModelProvider.initialize();
+
+        _dataModel = new DataModel();
+        _dataModel.setProvider(_memoryDataModelProvider);
+        _dataModel.initialize();
+
+        return _dataModel;
+    }
+
+    @After
+    public void tearDownDataModel() {
+        if (_dataModel != null) {
+            _dataModel.shutdown();
+            _dataModel = null;
+        }
+
+        if (_memoryDataModelProvider != null) {
+            _memoryDataModelProvider.shutdown();
+            _memoryDataModelProvider = null;
+        }
+    }
 }

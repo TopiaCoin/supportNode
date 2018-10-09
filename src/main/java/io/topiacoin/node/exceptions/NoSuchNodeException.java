@@ -1,13 +1,17 @@
-package io.topiacoin.node.storage.exceptions;
+package io.topiacoin.node.exceptions;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.security.PrivilegedActionException;
 
-public class CorruptDataItemException extends Exception {
+@ResponseStatus(value=HttpStatus.BAD_REQUEST, reason = "The specified Node does not exist")
+public class NoSuchNodeException extends Exception {
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
      * subsequently be initialized by a call to {@link #initCause}.
      */
-    public CorruptDataItemException() {
+    public NoSuchNodeException() {
     }
 
     /**
@@ -17,7 +21,7 @@ public class CorruptDataItemException extends Exception {
      * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
      *                method.
      */
-    public CorruptDataItemException(String message) {
+    public NoSuchNodeException(String message) {
         super(message);
     }
 
@@ -31,7 +35,7 @@ public class CorruptDataItemException extends Exception {
      *
      * @since 1.4
      */
-    public CorruptDataItemException(String message, Throwable cause) {
+    public NoSuchNodeException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -46,7 +50,8 @@ public class CorruptDataItemException extends Exception {
      *
      * @since 1.4
      */
-    public CorruptDataItemException(Throwable cause) {
+    public NoSuchNodeException(Throwable cause) {
         super(cause);
     }
 }
+

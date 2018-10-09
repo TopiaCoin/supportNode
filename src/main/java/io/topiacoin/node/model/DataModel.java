@@ -9,45 +9,47 @@ import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
-import io.topiacoin.node.exceptions.NotInitializedException;
 import io.topiacoin.node.model.provider.DataModelProvider;
-import io.topiacoin.node.model.provider.MemoryDataModelProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.List;
 
+@Component
 public class DataModel {
 
-	private static DataModel __instance;
+	private Log _log = LogFactory.getLog(this.getClass());
 
+	@Autowired
 	private DataModelProvider _provider;
 
-	protected DataModel(Configuration _config) {
-		if(_config != null) {
-			if (_config.getConfigurationOption("model.storage.type", "memory").equalsIgnoreCase("memory")) {
-				_provider = new MemoryDataModelProvider();
-			} else {
-				//_provider = new SQLiteDataModelProvider(_config);
-			}
-		} else {
-			throw new NotInitializedException();
-		}
+	public DataModel() {
+		// NOOP
 	}
 
-	public static synchronized DataModel getInstance() {
-		if (__instance == null) {
-			throw new NotInitializedException();
-		}
-		return __instance;
+	// -------- Lifecycle Methods --------
+
+	@PostConstruct
+	public void initialize() {
+		_log.info ( "Initializing Data Model");
+		_log.info ( "Initialized Data Model");
 	}
 
-	public static synchronized void initialize(Configuration config) {
-		__instance = new DataModel(config);
+	@PreDestroy
+	public void shutdown() {
+		_log.info ( "Shutting Down Data Model");
+		_log.info ( "Shut Down Data Model");
 	}
 
-	public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException {
-		return _provider.createContainer(id, expirationDate);
+
+	// -------- Data Model Methods --------
+
+	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException {
+		return _provider.createContainer(id, expirationDate, challenge);
 	}
 
 	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException {
@@ -58,8 +60,24 @@ public class DataModel {
 		return _provider.getContainer(id);
 	}
 
-	public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException {
-		return _provider.createDataItem(id, containerID, size, dataHash);
+	public void removeContainer(String id) throws NoSuchContainerException {
+		_provider.removeContainer(id);
+	}
+
+	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
+		_provider.addDataItemToContainer(dataItemID, containerID);
+	}
+
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException {
+		return _provider.removeDataItemFromContainer(dataItemID, containerID);
+	}
+
+	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException {
+		return _provider.isDataItemInContainer(dataItemID, containerID);
+	}
+
+	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException {
+		return _provider.createDataItem(id, size, dataHash);
 	}
 
 	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException {
@@ -114,9 +132,10 @@ public class DataModel {
 		_provider.removeBlockchain(id);
 	}
 
-	public void close() {
-		_provider.close();
-		__instance = null;
-	}
+	// -------- Accessor Methods --------
 
+
+	public void setProvider(DataModelProvider provider) {
+		_provider = provider;
+	}
 }

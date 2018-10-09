@@ -2,8 +2,7 @@ package io.topiacoin.node.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class DataItemInfoTest {
 
@@ -12,7 +11,6 @@ public class DataItemInfoTest {
 		DataItemInfo container = new DataItemInfo();
 
 		assertNull(container.getId());
-		assertNull(container.getContainerID());
 		assertNull(container.getDataHash());
 		assertEquals(0, container.getSize());
 	}
@@ -25,10 +23,9 @@ public class DataItemInfoTest {
 		String dataHash = "potatoes";
 		long size = 1111L;
 
-		DataItemInfo container = new DataItemInfo(id, containerID, size, dataHash);
+		DataItemInfo container = new DataItemInfo(id, size, dataHash);
 
 		assertEquals(id, container.getId());
-		assertEquals(containerID, container.getContainerID());
 		assertEquals(dataHash, container.getDataHash());
 		assertEquals(size, container.getSize());
 	}
@@ -49,12 +46,6 @@ public class DataItemInfoTest {
 		container.setId(null);
 		assertNull(container.getId());
 
-		assertNull(container.getContainerID());
-		container.setContainerID(containerID);
-		assertEquals(containerID, container.getContainerID());
-		container.setContainerID(null);
-		assertNull(container.getContainerID());
-
 		assertNull(container.getDataHash());
 		container.setDataHash(dataHash);
 		assertEquals(dataHash, container.getDataHash());
@@ -72,19 +63,35 @@ public class DataItemInfoTest {
 	public void testEqualsAndHashCode() throws Exception {
 
 		String id = "abc-123";
+		String id2 = "efg-456";
 		String containerID = "def-456";
+		String containerID2 = "zyx-987";
 		String dataHash = "potatoes";
+		String dataHash2 = "brussel sprouts";
 		long size = 1111L;
+		long size2 = 2222L;
 
-		DataItemInfo container1 = new DataItemInfo(id, containerID, size, dataHash);
-		DataItemInfo container2 = new DataItemInfo(id, containerID, size, dataHash);
+		DataItemInfo container1 = new DataItemInfo(id, size, dataHash);
+		DataItemInfo container2 = new DataItemInfo(id, size, dataHash);
+
+		DataItemInfo container3 = new DataItemInfo(id2, size, dataHash);
+		DataItemInfo container4 = new DataItemInfo(id, size2, dataHash);
+		DataItemInfo container5 = new DataItemInfo(id, size, dataHash2);
 
 		assertEquals(container1, container1);
 		assertEquals(container2, container2);
 		assertEquals(container1, container2);
 		assertEquals(container2, container1);
 
+		assertNotEquals(container1, container3);
+		assertNotEquals(container1, container4);
+		assertNotEquals(container1, container5);
+
 		assertEquals(container1.hashCode(), container2.hashCode());
+
+		assertNotEquals(container1.hashCode(), container3.hashCode());
+		assertNotEquals(container1.hashCode(), container4.hashCode());
+		assertNotEquals(container1.hashCode(), container5.hashCode());
 	}
 
 	@Test

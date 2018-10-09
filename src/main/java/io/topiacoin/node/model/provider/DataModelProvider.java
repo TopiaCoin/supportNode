@@ -5,6 +5,7 @@ import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.model.BlockchainInfo;
+import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
@@ -18,13 +19,25 @@ import java.util.List;
 
 public interface DataModelProvider {
 
-	public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException;
+	public void initialize();
+
+	public void shutdown();
+
+	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException;
 
 	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException;
 
 	public ContainerInfo getContainer(String id) throws NoSuchContainerException;
 
-	public DataItemInfo createDataItem(String id, String containerID, long size, String dataHash) throws DataItemAlreadyExistsException;
+	public void removeContainer(String id) throws NoSuchContainerException;
+
+	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException;
+
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException;
+
+	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException;
+
+	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException;
 
 	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException;
 
@@ -51,6 +64,4 @@ public interface DataModelProvider {
 	public BlockchainInfo getBlockchain(String id) throws NoSuchBlockchainException;
 
 	public void removeBlockchain(String id) throws NoSuchBlockchainException;
-
-	public void close();
 }
