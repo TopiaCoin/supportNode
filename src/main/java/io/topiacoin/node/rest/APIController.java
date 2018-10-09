@@ -3,10 +3,10 @@ package io.topiacoin.node.rest;
 import io.topiacoin.node.BusinessLogic;
 import io.topiacoin.node.exceptions.BadRequestException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
+import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerConnectionInfo;
-import io.topiacoin.node.model.ContainerInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.util.TextUtils;
@@ -17,12 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -40,6 +38,11 @@ public class APIController {
     @PostConstruct
     public void initialize() {
         _log.info("Initializing Master Controller");
+
+        if ( _businessLogic == null) {
+            throw new InitializationException("Business Logic Reference Not Provided");
+        }
+
         _log.info("Initialized Master Controller");
     }
 
@@ -57,7 +60,7 @@ public class APIController {
     }
 
     @RequestMapping(value = "/container", method = RequestMethod.GET)
-    public ContainerConnectionInfo getContainer(
+    public ResponseEntity<ContainerConnectionInfo> getContainer(
             @RequestParam("containerID") String containerID)
             throws NoSuchContainerException {
 
@@ -65,7 +68,10 @@ public class APIController {
             throw new BadRequestException("ContainerID not specified.");
         }
 
-        return _businessLogic.getContainer(containerID);
+        // This will throw if the container doesn't exist.
+        ContainerConnectionInfo container = _businessLogic.getContainer(containerID);
+
+        return new ResponseEntity<>(container, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/container", method = RequestMethod.POST)
@@ -112,10 +118,25 @@ public class APIController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @RequestMapping(value = "/container", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> removeContainer(
+            @RequestParam String containerID) {
+
+        _log.info("Remove Container: " + containerID);
+
+        if (TextUtils.isBlank(containerID)) {
+            throw new BadRequestException("ContainerID not specified.");
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @RequestMapping(value = "/chunk", method = RequestMethod.POST)
     public ResponseEntity<Void> addChunk(
             @RequestParam("chunkID") String chunkID,
             HttpServletRequest request) {
+
+        // TODO - Need to specify Container ID, Size, and Hash of the chunk
 
         if (TextUtils.isBlank(chunkID)) {
             throw new BadRequestException("ChunkID not specified.");
@@ -127,7 +148,8 @@ public class APIController {
 
     @RequestMapping(value = "/chunk", method = RequestMethod.HEAD)
     public ResponseEntity<Void> hasChunk(
-            @RequestParam("chunkID") String chunkID) {
+            @RequestParam("chunkID") String chunkID,
+            @RequestParam("containerID") String containerID) {
 
         if (TextUtils.isBlank(chunkID)) {
             throw new BadRequestException("ChunkID not specified.");
@@ -140,6 +162,7 @@ public class APIController {
     @RequestMapping(value = "/chunk", method = RequestMethod.GET)
     public void getChunk(
             @RequestParam("chunkID") String chunkID,
+            @RequestParam("containerID") String containerID,
             HttpServletResponse response) throws IOException {
 
         if (TextUtils.isBlank(chunkID)) {
@@ -148,6 +171,20 @@ public class APIController {
 
         _log.info("Getting Chunk " + chunkID);
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "No Such Chunk");
+    }
+
+    @RequestMapping(value = "/chunk", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> removeChunk(
+            @RequestParam("chunkID") String chunkID,
+            @RequestParam("containerID") String containerID) throws IOException {
+
+        if (TextUtils.isBlank(chunkID)) {
+            throw new BadRequestException("ChunkID not specified.");
+        }
+
+        _log.info("Removing Chunk " + chunkID);
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value = "/challenge", method = RequestMethod.POST)
