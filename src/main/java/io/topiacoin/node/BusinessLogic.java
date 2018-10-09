@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -202,7 +203,11 @@ public class BusinessLogic {
         }
 
         return containerInfo;
+    }
 
+    public void removeContainer(String containerID)
+            throws NoSuchContainerException {
+        throw new NotImplementedException();
     }
 
     public void storeChunk(String containerID, String chunkID, String dataHash, InputStream dataStream)

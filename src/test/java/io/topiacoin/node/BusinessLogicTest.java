@@ -510,6 +510,18 @@ public class BusinessLogicTest {
         }
     }
 
+    // -------- removeContainer() --------
+
+    @Test
+    public void testRemoveContainer() throws Exception {
+        fail ( "Test Not Yet Implemented" ) ;
+    }
+
+    @Test
+    public void testRemoveNonExistentContainer() throws Exception {
+        fail ( "Test Not Yet Implemented" ) ;
+    }
+
     // -------- storeChunk() --------
 
     @Test

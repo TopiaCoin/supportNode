@@ -4,7 +4,9 @@ import io.topiacoin.node.BusinessLogic;
 import io.topiacoin.node.exceptions.BadRequestException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.InitializationException;
+import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
+import io.topiacoin.node.exceptions.NoSuchNodeException;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import org.apache.commons.logging.Log;
@@ -100,7 +102,8 @@ public class APIController {
 
     @RequestMapping(value = "/container", method = RequestMethod.PUT)
     public ResponseEntity<Void> replicateContainer(
-            @RequestBody ContainerReplicationRequest replicationRequest) {
+            @RequestBody ContainerReplicationRequest replicationRequest)
+            throws ContainerAlreadyExistsException, NoSuchNodeException, NoSuchContainerException {
 
         if (replicationRequest == null) {
             throw new BadRequestException("Invalid Body.");
@@ -115,18 +118,27 @@ public class APIController {
             throw new BadRequestException("Peer Node ID not specified.");
         }
 
+        try {
+            _businessLogic.replicateContainer(replicationRequest.getContainerID(), replicationRequest.getPeerNodeID());
+        } catch ( MicroNetworkAlreadyExistsException e ) {
+            throw new ContainerAlreadyExistsException(e) ;
+        }
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/container", method = RequestMethod.DELETE)
     public ResponseEntity<Void> removeContainer(
-            @RequestParam String containerID) {
+            @RequestParam String containerID)
+            throws NoSuchContainerException {
 
         _log.info("Remove Container: " + containerID);
 
         if (TextUtils.isBlank(containerID)) {
             throw new BadRequestException("ContainerID not specified.");
         }
+
+        _businessLogic.removeContainer(containerID);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
