@@ -15,14 +15,10 @@ public class ContainerInfoMemoryTest extends AbstractDataModelContainerInfoTest 
     private DataModelProvider _memoryDataModelProvider;
 
     public DataModel getDataModel() {
-        Configuration config = new DefaultConfiguration();
-        config.setConfigurationOption("model.storage.type", "memory");
-
         _memoryDataModelProvider = new MemoryDataModelProvider();
         _memoryDataModelProvider.initialize();
 
         _dataModel = new DataModel();
-        _dataModel.setConfiguration(config);
         _dataModel.setProvider(_memoryDataModelProvider);
         _dataModel.initialize();
 

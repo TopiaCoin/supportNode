@@ -80,6 +80,14 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
+	public void removeContainer(String id) throws NoSuchContainerException {
+		if (!_containerMap.containsKey(id)) {
+			throw new NoSuchContainerException("No container exists with the requested ID");
+		}
+		_containerMap.remove(id);
+	}
+
+	@Override
 	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
 		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
 		if ( dataItemInfo == null ) {

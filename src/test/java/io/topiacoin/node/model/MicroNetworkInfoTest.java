@@ -26,7 +26,7 @@ public class MicroNetworkInfoTest {
 		String path = "whatever";
 		String rpcURL = "rpcURL";
 		String p2pURL = "p2pURL";
-		MicroNetworkState state = new MicroNetworkState("State");
+		MicroNetworkState state = MicroNetworkState.STARTING;
 
 		MicroNetworkInfo info = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
 
@@ -46,7 +46,7 @@ public class MicroNetworkInfoTest {
 		String path = "whatever";
 		String rpcURL = "rpcURL";
 		String p2pURL = "p2pURL";
-		MicroNetworkState state = new MicroNetworkState("state");
+		MicroNetworkState state = MicroNetworkState.STARTING;
 
 		MicroNetworkInfo info = new MicroNetworkInfo();
 
@@ -100,8 +100,8 @@ public class MicroNetworkInfoTest {
 		String rpcURL2 = "rpcURL2";
 		String p2pURL = "p2pURL";
 		String p2pURL2 = "p2pURL2";
-		MicroNetworkState state = new MicroNetworkState("State");
-		MicroNetworkState state2 = new MicroNetworkState("State2");
+		MicroNetworkState state = MicroNetworkState.STARTING;
+		MicroNetworkState state2 = MicroNetworkState.RUNNING;
 
 		MicroNetworkInfo info1 = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
 		MicroNetworkInfo info2 = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);

@@ -25,9 +25,6 @@ public class DataModel {
 	@Autowired
 	private DataModelProvider _provider;
 
-	@Autowired
-	private Configuration _configuration;
-
 	public DataModel() {
 		// NOOP
 	}
@@ -59,6 +56,10 @@ public class DataModel {
 
 	public ContainerInfo getContainer(String id) throws NoSuchContainerException {
 		return _provider.getContainer(id);
+	}
+
+	public void removeContainer(String id) throws NoSuchContainerException {
+		_provider.removeContainer(id);
 	}
 
 	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
@@ -118,9 +119,5 @@ public class DataModel {
 
 	public void setProvider(DataModelProvider provider) {
 		_provider = provider;
-	}
-
-	public void setConfiguration(Configuration configuration) {
-		_configuration = configuration;
 	}
 }

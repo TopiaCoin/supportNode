@@ -7,6 +7,8 @@ import io.topiacoin.node.model.DataModel;
 import io.topiacoin.node.model.MicroNetworkState;
 import org.junit.Test;
 
+import java.util.UUID;
+
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -21,7 +23,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setId("An ID");
         testMicroNetworkInfo.setContainerID("Another ID");
         testMicroNetworkInfo.setPath("Some Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state"));
+        testMicroNetworkInfo.setState(MicroNetworkState.STARTING);
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
@@ -45,27 +47,27 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         assertEquals("An ID", testMicroNetworkInfo.getId());
         assertEquals("Another ID", testMicroNetworkInfo.getContainerID());
         assertEquals("Some Path", testMicroNetworkInfo.getPath());
-        assertEquals(new MicroNetworkState("state"), testMicroNetworkInfo.getState());
+        assertEquals(MicroNetworkState.STARTING, testMicroNetworkInfo.getState());
         assertEquals("arpcUrl", testMicroNetworkInfo.getRpcURL());
         assertEquals("ap2pUrl", testMicroNetworkInfo.getP2pURL());
 
         assertEquals("An ID", createdMicroNetworkInfo.getId());
         assertEquals("Another ID", createdMicroNetworkInfo.getContainerID());
         assertEquals("Some Path", createdMicroNetworkInfo.getPath());
-        assertEquals(new MicroNetworkState("state"), createdMicroNetworkInfo.getState());
+        assertEquals(MicroNetworkState.STARTING, createdMicroNetworkInfo.getState());
         assertEquals("arpcUrl", createdMicroNetworkInfo.getRpcURL());
         assertEquals("ap2pUrl", createdMicroNetworkInfo.getP2pURL());
 
         assertEquals("An ID", fetchedMicroNetworkInfo.getId());
         assertEquals("Another ID", fetchedMicroNetworkInfo.getContainerID());
         assertEquals("Some Path", fetchedMicroNetworkInfo.getPath());
-        assertEquals(new MicroNetworkState("state"), fetchedMicroNetworkInfo.getState());
+        assertEquals(MicroNetworkState.STARTING, fetchedMicroNetworkInfo.getState());
         assertEquals("arpcUrl", fetchedMicroNetworkInfo.getRpcURL());
         assertEquals("ap2pUrl", fetchedMicroNetworkInfo.getP2pURL());
 
         testMicroNetworkInfo.setContainerID("new ID");
         testMicroNetworkInfo.setPath("new Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state2"));
+        testMicroNetworkInfo.setState(MicroNetworkState.RUNNING);
         testMicroNetworkInfo.setRpcURL("another rpcUrl");
         testMicroNetworkInfo.setP2pURL("another p2pUrl");
 
@@ -75,7 +77,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         assertEquals("An ID", testMicroNetworkInfo.getId());
         assertEquals("new ID", testMicroNetworkInfo.getContainerID());
         assertEquals("new Path", testMicroNetworkInfo.getPath());
-        assertEquals(new MicroNetworkState("state2"), testMicroNetworkInfo.getState());
+        assertEquals(MicroNetworkState.RUNNING, testMicroNetworkInfo.getState());
         assertEquals("another rpcUrl", testMicroNetworkInfo.getRpcURL());
         assertEquals("another p2pUrl", testMicroNetworkInfo.getP2pURL());
     }
@@ -86,7 +88,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setId("An ID");
         testMicroNetworkInfo.setContainerID("Another ID");
         testMicroNetworkInfo.setPath("Some Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state"));
+        testMicroNetworkInfo.setState(MicroNetworkState.STARTING);
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
@@ -104,7 +106,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         MicroNetworkInfo fetchedMicroNetworkInfo = dataModel.getMicroNetwork(testMicroNetworkInfo.getId());
         fetchedMicroNetworkInfo.setContainerID("new ID");
         testMicroNetworkInfo.setPath("new Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state2"));
+        testMicroNetworkInfo.setState(MicroNetworkState.RUNNING);
         testMicroNetworkInfo.setRpcURL("another rpcUrl");
         testMicroNetworkInfo.setP2pURL("another p2pUrl");
 
@@ -118,7 +120,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setId("An ID");
         testMicroNetworkInfo.setContainerID("Another ID");
         testMicroNetworkInfo.setPath("Some Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state"));
+        testMicroNetworkInfo.setState(MicroNetworkState.STARTING);
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
@@ -134,12 +136,51 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         testMicroNetworkInfo.setId("An ID");
         testMicroNetworkInfo.setContainerID("Another ID");
         testMicroNetworkInfo.setPath("Some Path");
-        testMicroNetworkInfo.setState(new MicroNetworkState("state"));
+        testMicroNetworkInfo.setState(MicroNetworkState.STARTING);
         testMicroNetworkInfo.setRpcURL("arpcUrl");
         testMicroNetworkInfo.setP2pURL("ap2pUrl");
 
         DataModel dataModel = getDataModel();
 
         dataModel.updateMicroNetwork(testMicroNetworkInfo);
+    }
+
+    @Test
+    public void testRemoveMicroNetwork() throws Exception {
+
+        String netID = UUID.randomUUID().toString();
+        String containerID = UUID.randomUUID().toString();
+        String path = "/dev/null";
+        MicroNetworkState state = MicroNetworkState.STARTING;
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+
+        DataModel dataModel = getDataModel();
+
+        dataModel.createMicroNetwork(netID, containerID, path, state, rpcURL, p2pURL);
+
+        dataModel.removeMicroNetwork(netID);
+
+        try {
+            dataModel.getMicroNetwork(netID);
+            fail ( "Expected NoSuchMicroNetworkException was not thrown");
+        } catch ( NoSuchMicroNetworkException e ) {
+            // NOOP - Expected Exception
+        }
+    }
+
+    @Test
+    public void testRemoveNonExistentMicroNetwork() throws Exception {
+
+        String netID = UUID.randomUUID().toString();
+
+        DataModel dataModel = getDataModel();
+
+        try {
+            dataModel.removeMicroNetwork(netID);
+            fail ( "Expected NoSuchMicroNetworkException was not thrown");
+        } catch ( NoSuchMicroNetworkException e ) {
+            // NOOP - Expected Exception
+        }
     }
 }

@@ -26,6 +26,8 @@ public interface DataModelProvider {
 
 	public ContainerInfo getContainer(String id) throws NoSuchContainerException;
 
+	public void removeContainer(String id) throws NoSuchContainerException;
+
 	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException;
 
 	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException;

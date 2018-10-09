@@ -80,7 +80,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234";
         String p2pURL = "http:localhost:5678/";
         ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/dev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/dev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
@@ -187,7 +187,7 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
@@ -223,7 +223,7 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         Future<ContainerInfo> containerInfoFuture = (Future<ContainerInfo>) new CompletedFuture<>(containerInfo);
 
@@ -263,7 +263,7 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         Future<ContainerInfo> containerInfoFuture = new CompletedFuture<>(null);
 
@@ -302,7 +302,7 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
@@ -344,7 +344,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
         nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
@@ -389,7 +389,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         Future<ContainerInfo> containerInfoFuture = new CompletedFuture<>(containerInfo);
 
@@ -476,7 +476,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
         List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
         nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
@@ -521,7 +521,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
@@ -565,7 +565,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
@@ -614,7 +614,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
@@ -663,7 +663,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
@@ -710,7 +710,7 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", new MicroNetworkState("OK"), rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         String dataHash = HashUtilities.generateHash("SHA-256", data); // This has will not match the data!!
         new Random().nextBytes(data);
@@ -765,7 +765,7 @@ public class BusinessLogicTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -806,7 +806,7 @@ public class BusinessLogicTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -846,7 +846,7 @@ public class BusinessLogicTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -886,7 +886,7 @@ public class BusinessLogicTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -933,7 +933,7 @@ public class BusinessLogicTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", new MicroNetworkState("Sane"), "http://localhost:1234/", "http://localhost:8765/");
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior

@@ -6,9 +6,11 @@ import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataModel;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.Assert.assertNotEquals;
 import static junit.framework.TestCase.fail;
@@ -122,5 +124,37 @@ public abstract class AbstractDataModelContainerInfoTest {
         DataModel dataModel = getDataModel();
 
         dataModel.updateContainer(testContainer);
+    }
+
+    @Test
+    public void testRemoveContainer() throws Exception {
+        DataModel dataModel = getDataModel();
+
+        String containerID = UUID.randomUUID().toString();
+
+        dataModel.createContainer(containerID, 0, null);
+
+        dataModel.removeContainer(containerID);
+
+        try {
+            dataModel.getContainer(containerID);
+            Assert.fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
+            // NOOP - Expected Exception
+        }
+    }
+
+    @Test
+    public void testRemoveNonExistentContainer() throws Exception {
+        DataModel dataModel = getDataModel();
+
+        String containerID = UUID.randomUUID().toString();
+
+        try {
+            dataModel.removeContainer(containerID);
+            Assert.fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
+            // NOOP - Expected Exception
+        }
     }
 }
