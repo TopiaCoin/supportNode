@@ -7,6 +7,8 @@ import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchNodeException;
+import io.topiacoin.node.model.Challenge;
+import io.topiacoin.node.model.ChallengeChunkInfo;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import org.easymock.EasyMock;
@@ -19,6 +21,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static junit.framework.TestCase.*;
@@ -208,7 +212,6 @@ public class APIControllerTest {
         String containerID = UUID.randomUUID().toString();
 
         ContainerCreationRequest request = new ContainerCreationRequest(containerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -238,13 +241,85 @@ public class APIControllerTest {
         // Verify the Mock Objects
         EasyMock.verify(businessLogic);
     }
+
+    @Test
+    public void testCreateNonExistentContainer() throws Exception  {
+
+        String containerID = UUID.randomUUID().toString();
+
+        ContainerCreationRequest request = new ContainerCreationRequest(containerID);
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        EasyMock.expect(businessLogic.createContainer(containerID)).andThrow(new NoSuchContainerException());
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.createContainer(request);
+            fail ( "Expected BadRequestException was not thrown");
+        } catch ( BadRequestException e ) {
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
+    }
+
+    @Test
+    public void testCreateContainerWithNullRequest() throws Exception  {
+
+        String containerID = UUID.randomUUID().toString();
+
+        ContainerCreationRequest request = null;
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        // -- None --
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.createContainer(request);
+            fail ( "Expected BadRequestException was not thrown") ;
+        } catch ( BadRequestException e ) {
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
+    }
+
     @Test
     public void testCreateContainerWithBlankID() throws Exception  {
 
         String containerID = "";
 
         ContainerCreationRequest request = new ContainerCreationRequest(containerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -281,7 +356,6 @@ public class APIControllerTest {
         String containerID = null;
 
         ContainerCreationRequest request = new ContainerCreationRequest(containerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -355,7 +429,6 @@ public class APIControllerTest {
         String peerID = UUID.randomUUID().toString();
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -393,7 +466,6 @@ public class APIControllerTest {
         String peerID = UUID.randomUUID().toString();
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -431,7 +503,6 @@ public class APIControllerTest {
         String peerID = UUID.randomUUID().toString();
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -463,13 +534,49 @@ public class APIControllerTest {
     }
 
     @Test
+    public void testReplicateContainerWithNullRequest() throws Exception  {
+
+        String containerID = UUID.randomUUID().toString();
+        String peerID = UUID.randomUUID().toString();
+
+        ContainerReplicationRequest request = null;
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        // -- None --
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            ResponseEntity<Void> response = controller.replicateContainer(request);
+            fail ( "Expected BadRequestException was not thrown" );
+        } catch ( BadRequestException e ) {
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
+    }
+
+    @Test
     public void testReplicateContainerWithBlankID() throws Exception  {
 
         String containerID = "";
         String peerID = UUID.randomUUID().toString();
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -507,7 +614,6 @@ public class APIControllerTest {
         String peerID = UUID.randomUUID().toString();
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -545,7 +651,6 @@ public class APIControllerTest {
         String peerID = "";
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -583,7 +688,6 @@ public class APIControllerTest {
         String peerID = null;
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -982,7 +1086,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
         ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
@@ -1017,7 +1120,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
         ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
@@ -1057,7 +1159,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
         ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
@@ -1097,8 +1198,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = "";
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1135,8 +1234,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = null;
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1173,8 +1270,6 @@ public class APIControllerTest {
 
         String containerID = "";
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1211,8 +1306,6 @@ public class APIControllerTest {
 
         String containerID = null;
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1251,8 +1344,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1284,8 +1375,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1322,8 +1411,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1360,8 +1447,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = "";
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1397,8 +1482,6 @@ public class APIControllerTest {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = null;
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1433,8 +1516,6 @@ public class APIControllerTest {
 
         String containerID = "";
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1470,8 +1551,6 @@ public class APIControllerTest {
 
         String containerID = null;
         String chunkID = UUID.randomUUID().toString();
-        String dataHash = "SHA-256:deadbeef";
-        ServletOutputStream dataStream = null;
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1710,32 +1789,214 @@ public class APIControllerTest {
 
     @Test
     public void testSubmitChallenge() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        String containerID = UUID.randomUUID().toString();
+
+        String chunkID1 = UUID.randomUUID().toString();
+        String chunkID2 = UUID.randomUUID().toString();
+        String chunkID3 = UUID.randomUUID().toString();
+
+        List<ChallengeChunkInfo> chunks = new ArrayList<>();
+        chunks.add(new ChallengeChunkInfo(chunkID1, 0, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
+
+        Challenge challenge = new Challenge(containerID, chunks) ;
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        businessLogic.submitChallenge(challenge);
+        EasyMock.expectLastCall();
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        ResponseEntity<Void> response = controller.submitChallenge(challenge);
+
+        // Verify the expected Results
+        assertNotNull ( response ) ;
+        assertEquals ( HttpStatus.ACCEPTED, response.getStatusCode());
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
     }
 
     @Test
-    public void testSubmitChallengeForNonExistentWorkspace() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
+    public void testSubmitChallengeForNonExistentContainer() throws Exception  {
+
+        String containerID = UUID.randomUUID().toString();
+
+        String chunkID1 = UUID.randomUUID().toString();
+        String chunkID2 = UUID.randomUUID().toString();
+        String chunkID3 = UUID.randomUUID().toString();
+
+        List<ChallengeChunkInfo> chunks = new ArrayList<>();
+        chunks.add(new ChallengeChunkInfo(chunkID1, 0, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
+
+        Challenge challenge = new Challenge(containerID, chunks) ;
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        businessLogic.submitChallenge(challenge);
+        EasyMock.expectLastCall().andThrow(new NoSuchContainerException());
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.submitChallenge(challenge);
+            fail ( "Expected NoSuchContainerException was not thrown");
+        } catch ( NoSuchContainerException e ){
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
     }
 
     @Test
-    public void testSubmitChallengeWithNullChallenege() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
+    public void testSubmitChallengeWithNullChallenge() throws Exception  {
+
+        Challenge challenge = null;
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        // -- None --
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.submitChallenge(challenge);
+            fail ( "Expected BadRequestException was not thrown");
+        } catch ( BadRequestException e ){
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
     }
 
     @Test
     public void testSubmitChallengeWithBlankContainerID() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        String containerID = "";
+
+        String chunkID1 = UUID.randomUUID().toString();
+        String chunkID2 = UUID.randomUUID().toString();
+        String chunkID3 = UUID.randomUUID().toString();
+
+        List<ChallengeChunkInfo> chunks = new ArrayList<>();
+        chunks.add(new ChallengeChunkInfo(chunkID1, 0, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
+
+        Challenge challenge = new Challenge(containerID, chunks);
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        // -- None --
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.submitChallenge(challenge);
+            fail ( "Expected BadRequestException was not thrown");
+        } catch ( BadRequestException e ){
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
     }
 
     @Test
     public void testSubmitChallengeWithNullContainerID() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
-    }
 
-    @Test
-    public void testSubmitChallengeWithNullChunkList() throws Exception  {
-        fail ( "Test Not Yet Implemented" ) ;
+        String containerID = null;
+
+        String chunkID1 = UUID.randomUUID().toString();
+        String chunkID2 = UUID.randomUUID().toString();
+        String chunkID3 = UUID.randomUUID().toString();
+
+        List<ChallengeChunkInfo> chunks = new ArrayList<>();
+        chunks.add(new ChallengeChunkInfo(chunkID1, 0, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
+        chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
+
+        Challenge challenge = new Challenge(containerID, chunks);
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        // -- None --
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.submitChallenge(challenge);
+            fail ( "Expected BadRequestException was not thrown");
+        } catch ( BadRequestException e ){
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
     }
 
 }

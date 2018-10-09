@@ -6,6 +6,7 @@ import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.CorruptDataItemException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.InitializationException;
+import io.topiacoin.node.exceptions.InvalidChallengeException;
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
@@ -59,11 +60,6 @@ public class APIController {
     }
 
     // -------- Container Methods --------
-
-    @RequestMapping("/")
-    public String test() {
-        return "Hello, World";
-    }
 
     @RequestMapping(value = "/container", method = RequestMethod.GET)
     public ResponseEntity<ContainerConnectionInfo> getContainer(
@@ -243,13 +239,20 @@ public class APIController {
 
     @RequestMapping(value = "/challenge", method = RequestMethod.POST)
     public ResponseEntity<Void> submitChallenge(
-            @RequestBody Challenge challenge) {
+            @RequestBody Challenge challenge)
+            throws NoSuchContainerException, InvalidChallengeException {
 
         if (challenge == null) {
             throw new BadRequestException("Challenge not specified.");
         }
+        if (TextUtils.isBlank(challenge.getContainerID())) {
+            throw new BadRequestException("Container ID not specified.");
+        }
 
         _log.info("Received Challenge: " + challenge);
+
+        _businessLogic.submitChallenge(challenge);
+
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
