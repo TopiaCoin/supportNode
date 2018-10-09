@@ -1,9 +1,11 @@
 package io.topiacoin.node.model;
 
 import io.topiacoin.node.Configuration;
+import io.topiacoin.node.exceptions.BlockchainAlreadyExistsException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
+import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
@@ -94,6 +96,22 @@ public class DataModel {
 
 	public void removeMicroNetwork(String id) throws NoSuchMicroNetworkException {
 		_provider.removeMicroNetwork(id);
+	}
+
+	public BlockchainInfo createBlockchain(String id, String localPath) throws BlockchainAlreadyExistsException {
+		return _provider.createBlockchain(id, localPath);
+	}
+
+	public void updateBlockchain(BlockchainInfo updatedBlockchainInfo) throws NoSuchBlockchainException {
+		_provider.updateBlockchain(updatedBlockchainInfo);
+	}
+
+	public BlockchainInfo getBlockchain(String id) throws NoSuchBlockchainException {
+		return _provider.getBlockchain(id);
+	}
+
+	public void removeBlockchain(String id) throws NoSuchBlockchainException {
+		_provider.removeBlockchain(id);
 	}
 
 	public void close() {

@@ -1,7 +1,10 @@
 package io.topiacoin.node.model.provider;
 
+import io.topiacoin.node.exceptions.BlockchainAlreadyExistsException;
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
+import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
+import io.topiacoin.node.model.BlockchainInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
@@ -22,6 +25,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	private Map<String, ContainerInfo> _containerMap = new HashMap<>();
 	private Map<String, DataItemInfo> _dataItemMap = new HashMap<>();
 	private Map<String, MicroNetworkInfo> _microNetworkMap = new HashMap<>();
+	private Map<String, BlockchainInfo> _blockchainInfoMap = new HashMap<>();
 	private Map<String, List<DataItemInfo>> _containerDataItemMap = new HashMap<>();
 
 	@Override public ContainerInfo createContainer(String id, long expirationDate) throws ContainerAlreadyExistsException {
@@ -140,6 +144,38 @@ public class MemoryDataModelProvider implements DataModelProvider {
 			throw new NoSuchMicroNetworkException("No Micro Network exists with the requested ID");
 		}
 		_microNetworkMap.remove(id);
+	}
+
+	@Override public BlockchainInfo createBlockchain(String id, String localPath) throws BlockchainAlreadyExistsException {
+		if(_blockchainInfoMap.containsKey(id)) {
+			throw new BlockchainAlreadyExistsException("Blockchain with id " + id + " already exists");
+		}
+		BlockchainInfo info = new BlockchainInfo(id, localPath);
+		_blockchainInfoMap.put(id, info);
+		return info;
+	}
+
+	@Override public void updateBlockchain(BlockchainInfo updatedBlockchainInfo) throws NoSuchBlockchainException {
+		if (!_blockchainInfoMap.containsKey(updatedBlockchainInfo.getId())) {
+			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
+		}
+		BlockchainInfo blockchainToUpdate = new BlockchainInfo(updatedBlockchainInfo);
+		_blockchainInfoMap.put(blockchainToUpdate.getId(), blockchainToUpdate);
+	}
+
+	@Override public BlockchainInfo getBlockchain(String id) throws NoSuchBlockchainException {
+		if (!_blockchainInfoMap.containsKey(id)) {
+			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
+		}
+		return new BlockchainInfo(_blockchainInfoMap.get(id));
+	}
+
+	@Override public void removeBlockchain(String id) throws NoSuchBlockchainException {
+		BlockchainInfo item = _blockchainInfoMap.get(id);
+		if (item == null) {
+			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
+		}
+		_blockchainInfoMap.remove(id);
 	}
 
 	@Override public void close() {
