@@ -7,7 +7,6 @@ import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.DataModel;
 import org.junit.Test;
-import sun.plugin.util.UIUtil;
 
 import java.util.List;
 import java.util.UUID;
