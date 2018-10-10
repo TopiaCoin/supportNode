@@ -514,12 +514,73 @@ public class BusinessLogicTest {
 
     @Test
     public void testRemoveContainer() throws Exception {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+        String netID = UUID.randomUUID().toString();
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(netID, containerID, "/dev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
+        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        _microNetworkManager.destroyBlockchain(netID);
+        EasyMock.expectLastCall();
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            bl.removeContainer(containerID);
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
     }
 
     @Test
     public void testRemoveNonExistentContainer() throws Exception {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getContainer(containerID)).andThrow(new NoSuchContainerException());
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            try {
+                bl.removeContainer(containerID);
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch ( NoSuchContainerException e ){
+                // NOOP - Expected Exception
+            }
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
     }
 
     // -------- storeChunk() --------
@@ -1157,12 +1218,133 @@ public class BusinessLogicTest {
 
     @Test
     public void testRemoveChunk() throws Exception {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+        String chunkID = UUID.randomUUID().toString();
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+        String dataHash = HashUtilities.generateHash("SHA-256", data);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
+        EasyMock.expect(_dataModel.isDataItemInContainer(chunkID, containerID)).andReturn(true);
+        EasyMock.expect(_dataModel.removeDataItemFromContainer(chunkID, containerID)).andReturn(true);
+        EasyMock.expect(_dataStorageManager.removeData(chunkID)).andReturn(true);
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            bl.removeChunk(containerID, chunkID);
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
     }
 
     @Test
     public void testRemoveNonExistentChunk() throws Exception {
-        fail ( "Test Not Yet Implemented" ) ;
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+        String chunkID = UUID.randomUUID().toString();
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+        String dataHash = HashUtilities.generateHash("SHA-256", data);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andThrow(new NoSuchDataItemException());
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            try {
+                bl.removeChunk(containerID, chunkID);
+                fail ( "Expected NoSuchDataItemException was not thrown" );
+            } catch (NoSuchDataItemException e ) {
+                // NOOP - Expected Exception
+            }
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
+    }
+
+    @Test
+    public void testRemoveChunkFromNonExistentContainer() throws Exception {
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+        String chunkID = UUID.randomUUID().toString();
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+        String dataHash = HashUtilities.generateHash("SHA-256", data);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
+        EasyMock.expect(_dataModel.isDataItemInContainer(chunkID, containerID)).andThrow(new NoSuchContainerException());
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            try {
+                bl.removeChunk(containerID, chunkID);
+                fail ( "Expected NoSuchContainerException was not thrown" );
+            } catch (NoSuchContainerException e ) {
+                // NOOP - Expected Exception
+            }
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
     }
 
 

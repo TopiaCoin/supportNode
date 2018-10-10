@@ -207,7 +207,15 @@ public class BusinessLogic {
 
     public void removeContainer(String containerID)
             throws NoSuchContainerException {
-        throw new NotImplementedException();
+
+        ContainerInfo containerInfo = _dataModel.getContainer(containerID);
+        if ( containerInfo == null ) {
+            throw new NoSuchContainerException();
+        }
+        MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        if ( microNetworkInfo != null ) {
+            _microNetworkManager.destroyBlockchain(microNetworkInfo.getId());
+        }
     }
 
     public void storeChunk(String containerID, String chunkID, String dataHash, InputStream dataStream)
