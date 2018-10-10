@@ -12,13 +12,11 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static org.junit.Assert.assertNotEquals;
-import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public abstract class AbstractDataModelContainerInfoTest {
 
-    protected abstract DataModel getDataModel() ;
+    protected abstract DataModel getDataModel();
 
     @Test
     public void testContainerInfoCRUD() throws Exception {
@@ -34,12 +32,8 @@ public abstract class AbstractDataModelContainerInfoTest {
 
         DataModel dataModel = getDataModel();
 
-        try {
-            dataModel.getContainer(containerID);
-            fail();
-        } catch (NoSuchContainerException e) {
-            //Good
-        }
+        ContainerInfo fetchedContainer = dataModel.getContainer(containerID);
+        assertNull(fetchedContainer);
 
         ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
 
@@ -47,7 +41,7 @@ public abstract class AbstractDataModelContainerInfoTest {
         assertEquals(containerID, createdContainer.getId());
         assertEquals(expirationDate, createdContainer.getExpirationDate());
 
-        ContainerInfo fetchedContainer = dataModel.getContainer(testContainer.getId());
+        fetchedContainer = dataModel.getContainer(testContainer.getId());
 
         assertEquals(testContainer, fetchedContainer);
         assertEquals(createdContainer, fetchedContainer);
@@ -78,16 +72,12 @@ public abstract class AbstractDataModelContainerInfoTest {
 
         DataModel dataModel = getDataModel();
 
-        try {
-            dataModel.getContainer(containerID);
-            fail();
-        } catch (NoSuchContainerException e) {
-            //Good
-        }
+        ContainerInfo fetchedContainer = dataModel.getContainer(containerID);
+        assertNull(fetchedContainer);
 
         ContainerInfo createdContainer = dataModel.createContainer(testContainer.getId(), testContainer.getExpirationDate(), testContainer.getChallenge());
 
-        ContainerInfo fetchedContainer = dataModel.getContainer(testContainer.getId());
+        fetchedContainer = dataModel.getContainer(testContainer.getId());
         fetchedContainer.setExpirationDate(12345L);
         assertNotEquals(createdContainer, fetchedContainer);
 
@@ -136,12 +126,8 @@ public abstract class AbstractDataModelContainerInfoTest {
 
         dataModel.removeContainer(containerID);
 
-        try {
-            dataModel.getContainer(containerID);
-            Assert.fail("Expected NoSuchContainerException was not thrown");
-        } catch (NoSuchContainerException e) {
-            // NOOP - Expected Exception
-        }
+        ContainerInfo fetchedContainerInfo = dataModel.getContainer(containerID);
+        assertNull(fetchedContainerInfo);
     }
 
     @Test
@@ -150,11 +136,6 @@ public abstract class AbstractDataModelContainerInfoTest {
 
         String containerID = UUID.randomUUID().toString();
 
-        try {
-            dataModel.removeContainer(containerID);
-            Assert.fail("Expected NoSuchContainerException was not thrown");
-        } catch (NoSuchContainerException e) {
-            // NOOP - Expected Exception
-        }
+        dataModel.removeContainer(containerID);
     }
 }

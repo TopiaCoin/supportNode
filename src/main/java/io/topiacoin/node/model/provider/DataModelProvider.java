@@ -19,49 +19,62 @@ import java.util.List;
 
 public interface DataModelProvider {
 
-	public void initialize();
+    void initialize();
 
-	public void shutdown();
+    void shutdown();
 
-	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException;
+    ContainerInfo createContainer(String containerID, long expirationDate, Challenge challenge)
+            throws ContainerAlreadyExistsException;
 
-	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException;
+    void updateContainer(ContainerInfo updatedContainer)
+            throws NoSuchContainerException;
 
-	public ContainerInfo getContainer(String id) throws NoSuchContainerException;
+    ContainerInfo getContainer(String containerID);
 
-	public void removeContainer(String id) throws NoSuchContainerException;
+    boolean removeContainer(String containerID);
 
-	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException;
+    void addDataItemToContainer(String dataItemID, String containerID)
+            throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException;
 
-	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException;
+    boolean removeDataItemFromContainer(String dataItemID, String containerID)
+            throws NoSuchContainerException;
 
-	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException;
+    boolean isDataItemInContainer(String dataItemID, String containerID)
+            throws NoSuchContainerException;
 
-	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException;
+    DataItemInfo createDataItem(String dataItemID, long size, String dataHash)
+            throws DataItemAlreadyExistsException;
 
-	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException;
+    void updateDataItem(DataItemInfo updatedDataItem)
+            throws NoSuchDataItemException;
 
-	public DataItemInfo getDataItem(String id) throws NoSuchDataItemException;
+    DataItemInfo getDataItem(String dataItemID);
 
-	public List<DataItemInfo> getDataItems(String containerID) throws NoSuchContainerException;
+    List<DataItemInfo> getDataItems(String containerID)
+            throws NoSuchContainerException;
 
-	public void removeDataItem(String id) throws NoSuchDataItemException;
+    boolean removeDataItem(String dataItemID);
 
-	public void removeDataItems(String containerID) throws NoSuchContainerException;
+    boolean removeDataItems(String containerID)
+            throws NoSuchContainerException;
 
-	public MicroNetworkInfo createMicroNetwork(String id, String containerID, String path, MicroNetworkState state, String rpcURL, String p2pURL) throws MicroNetworkAlreadyExistsException;
+    MicroNetworkInfo createMicroNetwork(String microNetworkID, String containerID, String path, MicroNetworkState state, String rpcURL, String p2pURL)
+            throws MicroNetworkAlreadyExistsException;
 
-	public void updateMicroNetwork(MicroNetworkInfo updatedMicroNetwork) throws NoSuchMicroNetworkException;
+    void updateMicroNetwork(MicroNetworkInfo updatedMicroNetwork)
+            throws NoSuchMicroNetworkException;
 
-	public MicroNetworkInfo getMicroNetwork(String id) throws NoSuchMicroNetworkException;
+    MicroNetworkInfo getMicroNetwork(String microNetworkID);
 
-	public void removeMicroNetwork(String id) throws NoSuchMicroNetworkException;
+    boolean removeMicroNetwork(String microNetworkID);
 
-	public BlockchainInfo createBlockchain(String id, String localPath) throws BlockchainAlreadyExistsException;
+    BlockchainInfo createBlockchain(String blockchainID, String localPath)
+            throws BlockchainAlreadyExistsException;
 
-	public void updateBlockchain(BlockchainInfo updatedMicroNetwork) throws NoSuchBlockchainException;
+    void updateBlockchain(BlockchainInfo updatedMicroNetwork)
+            throws NoSuchBlockchainException;
 
-	public BlockchainInfo getBlockchain(String id) throws NoSuchBlockchainException;
+    BlockchainInfo getBlockchain(String blockchainID);
 
-	public void removeBlockchain(String id) throws NoSuchBlockchainException;
+    boolean removeBlockchain(String blockchainID);
 }

@@ -16,12 +16,11 @@ public abstract class MicroNetworkBlockchainManager {
 	//Creates a blockchain with the given blockchainID. This blockchain will be created on disk so that it can be started later. Throws an exception if the blockchainID is invalid or not unique, or if the Container creation hasn't been greenlit by the SMSC
 	void createBlockchain(String blockchainID) throws BlockchainAlreadyExistsException {
 		//Check if a Blockchain with the given blockchainID exists already - if it does, throw a BlockchainAlreadyExistsException
-		try {
-			_dataModel.getBlockchain(blockchainID);
+		BlockchainInfo blockchainInfo = _dataModel.getBlockchain(blockchainID);
+		if ( blockchainInfo != null ) {
 			throw new BlockchainAlreadyExistsException("Blockchain with id " + blockchainID + " already exists");
-		} catch (NoSuchBlockchainException e) {
-			//Ok good
 		}
+
 		//Add BlockchainInfo to the Data Model with a status flag indicating it's being created
 		//Actually create the blockchain using the implementation
 		//Start the blockchain(?)

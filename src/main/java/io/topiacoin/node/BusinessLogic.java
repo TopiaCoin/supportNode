@@ -247,12 +247,8 @@ public class BusinessLogic {
         boolean found = true ;
 
         // Check the Data Model to see if we have this chunk listed for this container ID
-        try {
-            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
-            found &= (chunkInfo != null);
-        } catch ( NoSuchDataItemException e) {
-            found = false ;
-        }
+        DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+        found &= (chunkInfo != null);
 
         if ( found ) {
             found &= _dataModel.isDataItemInContainer(chunkID, containerID);

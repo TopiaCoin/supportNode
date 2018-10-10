@@ -61,8 +61,8 @@ public class DataModelTest {
         ContainerInfo createdInfo = _dataModel.createContainer(containerID, expiration, challenge);
         try {
             _dataModel.createContainer(containerID, expiration, challenge);
-            fail ( "Expected ContainerAlreadyExistsException was not thrown" );
-        } catch ( ContainerAlreadyExistsException e) {
+            fail("Expected ContainerAlreadyExistsException was not thrown");
+        } catch (ContainerAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -98,8 +98,8 @@ public class DataModelTest {
         _dataModel.updateContainer(containerInfo);
         try {
             _dataModel.updateContainer(containerInfo);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -122,22 +122,20 @@ public class DataModelTest {
 
         // Configure Mock Object Expectations
         EasyMock.expect(_dataModelProvider.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_dataModelProvider.getContainer(containerID)).andThrow(new NoSuchContainerException());
+        EasyMock.expect(_dataModelProvider.getContainer(containerID)).andReturn(null);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        _dataModel.getContainer(containerID);
-        try {
-            _dataModel.getContainer(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
-            // NOOP - Expected Exception
-        }
+        ContainerInfo fetchedInfo1 = null;
+        ContainerInfo fetchedInfo2 = null;
+        fetchedInfo1 = _dataModel.getContainer(containerID);
+        fetchedInfo2 = _dataModel.getContainer(containerID);
 
         // Assert Results of the test
-        // -- None --
+        assertNotNull(fetchedInfo1);
+        assertNull(fetchedInfo2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -154,25 +152,19 @@ public class DataModelTest {
         ContainerInfo containerInfo = new ContainerInfo(containerID, expiration, challenge);
 
         // Configure Mock Object Expectations
-        _dataModelProvider.removeContainer(containerID);
-        EasyMock.expectLastCall();
-        _dataModelProvider.removeContainer(containerID);
-        EasyMock.expectLastCall().andThrow(new NoSuchContainerException());
+        EasyMock.expect(_dataModelProvider.removeContainer(containerID)).andReturn(true);
+        EasyMock.expect(_dataModelProvider.removeContainer(containerID)).andReturn(false);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        _dataModel.removeContainer(containerID);
-        try {
-            _dataModel.removeContainer(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
-            // NOOP - Expected Exception
-        }
+        boolean removed1 = _dataModel.removeContainer(containerID);
+        boolean removed2 = _dataModel.removeContainer(containerID);
 
         // Assert Results of the test
-        // -- None --
+        assertTrue(removed1);
+        assertFalse(removed2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -204,20 +196,20 @@ public class DataModelTest {
         _dataModel.addDataItemToContainer(chunkID, containerID);
         try {
             _dataModel.addDataItemToContainer(chunkID, containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
         try {
             _dataModel.addDataItemToContainer(chunkID, containerID);
-            fail ( "Expected NoSuchDataItemException was not thrown") ;
-        } catch ( NoSuchDataItemException e ) {
+            fail("Expected NoSuchDataItemException was not thrown");
+        } catch (NoSuchDataItemException e) {
             // NOOP - Expected Exception
         }
         try {
             _dataModel.addDataItemToContainer(chunkID, containerID);
-            fail ( "Expected DataItemAlreadyExistsException was not thrown") ;
-        } catch ( DataItemAlreadyExistsException e ) {
+            fail("Expected DataItemAlreadyExistsException was not thrown");
+        } catch (DataItemAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -244,27 +236,19 @@ public class DataModelTest {
         EasyMock.expectLastCall().andReturn(false);
         _dataModelProvider.removeDataItemFromContainer(chunkID, containerID);
         EasyMock.expectLastCall().andThrow(new NoSuchContainerException());
-        _dataModelProvider.removeDataItemFromContainer(chunkID, containerID);
-        EasyMock.expectLastCall().andThrow(new NoSuchDataItemException());
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        boolean result1 = false ;
-        boolean result2 = false ;
+        boolean result1 = false;
+        boolean result2 = false;
         result1 = _dataModel.removeDataItemFromContainer(chunkID, containerID);
         result2 = _dataModel.removeDataItemFromContainer(chunkID, containerID);
         try {
             _dataModel.removeDataItemFromContainer(chunkID, containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
-            // NOOP - Expected Exception
-        }
-        try {
-            _dataModel.removeDataItemFromContainer(chunkID, containerID);
-            fail ( "Expected NoSuchDataItemException was not thrown") ;
-        } catch ( NoSuchDataItemException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -298,14 +282,14 @@ public class DataModelTest {
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        boolean result1 = false ;
-        boolean result2 = false ;
+        boolean result1 = false;
+        boolean result2 = false;
         result1 = _dataModel.isDataItemInContainer(chunkID, containerID);
         result2 = _dataModel.isDataItemInContainer(chunkID, containerID);
         try {
             _dataModel.isDataItemInContainer(chunkID, containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -342,8 +326,8 @@ public class DataModelTest {
         info = _dataModel.createDataItem(chunkID, size, dataHash);
         try {
             _dataModel.createDataItem(chunkID, size, dataHash);
-            fail ( "Expected DataItemAlreadyExistsException was not thrown") ;
-        } catch ( DataItemAlreadyExistsException e ) {
+            fail("Expected DataItemAlreadyExistsException was not thrown");
+        } catch (DataItemAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -382,8 +366,8 @@ public class DataModelTest {
         _dataModel.updateDataItem(dataItemInfo);
         try {
             _dataModel.updateDataItem(dataItemInfo);
-            fail ( "Expected NoSuchDataItemException was not thrown") ;
-        } catch ( NoSuchDataItemException e ) {
+            fail("Expected NoSuchDataItemException was not thrown");
+        } catch (NoSuchDataItemException e) {
             // NOOP - Expected Exception
         }
 
@@ -408,28 +392,22 @@ public class DataModelTest {
 
         // Configure Mock Object Expectations
         EasyMock.expect(_dataModelProvider.getDataItem(chunkID)).andReturn(dataItemInfo);
-        _dataModelProvider.getDataItem(chunkID);
-        EasyMock.expectLastCall().andThrow(new NoSuchDataItemException());
+        EasyMock.expect(_dataModelProvider.getDataItem(chunkID)).andReturn(null);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        DataItemInfo info;
-        info = _dataModel.getDataItem(chunkID);
-        try {
-            _dataModel.getDataItem(chunkID);
-            fail ( "Expected NoSuchDataItemException was not thrown") ;
-        } catch ( NoSuchDataItemException e ) {
-            // NOOP - Expected Exception
-        }
+        DataItemInfo info1 = _dataModel.getDataItem(chunkID);
+        DataItemInfo info2 = _dataModel.getDataItem(chunkID);
 
         // Assert Results of the test
         // -- None --
-        assertNotNull(info);
-        assertEquals(chunkID, info.getId());
-        assertEquals(size, info.getSize());
-        assertEquals(dataHash, info.getDataHash());
+        assertNotNull(info1);
+        assertEquals(chunkID, info1.getId());
+        assertEquals(size, info1.getSize());
+        assertEquals(dataHash, info1.getDataHash());
+        assertNull(info2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -461,15 +439,15 @@ public class DataModelTest {
         infos = _dataModel.getDataItems(containerID);
         try {
             _dataModel.getDataItems(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
         // Assert Results of the test
         // -- None --
         assertNotNull(infos);
-        assertEquals ( infoList.size(), infos.size());
+        assertEquals(infoList.size(), infos.size());
         DataItemInfo info = infos.get(0);
         assertEquals(chunkID, info.getId());
         assertEquals(size, info.getSize());
@@ -491,25 +469,19 @@ public class DataModelTest {
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, size, dataHash);
 
         // Configure Mock Object Expectations
-        _dataModelProvider.removeDataItem(chunkID);
-        EasyMock.expectLastCall();
-        _dataModelProvider.removeDataItem(chunkID);
-        EasyMock.expectLastCall().andThrow(new NoSuchDataItemException());
+        EasyMock.expect(_dataModelProvider.removeDataItem(chunkID)).andReturn(true);
+        EasyMock.expect(_dataModelProvider.removeDataItem(chunkID)).andReturn(false);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        _dataModel.removeDataItem(chunkID);
-        try {
-            _dataModel.removeDataItem(chunkID);
-            fail ( "Expected NoSuchDataItemException was not thrown") ;
-        } catch ( NoSuchDataItemException e ) {
-            // NOOP - Expected Exception
-        }
+        boolean removed1 = _dataModel.removeDataItem(chunkID);
+        boolean removed2 = _dataModel.removeDataItem(chunkID);
 
         // Assert Results of the test
-        // -- None --
+        assertTrue(removed1);
+        assertFalse(removed2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -525,25 +497,26 @@ public class DataModelTest {
         String dataHash = "SHA-256:deadbeef";
 
         // Configure Mock Object Expectations
-        _dataModelProvider.removeDataItems(containerID);
-        EasyMock.expectLastCall();
-        _dataModelProvider.removeDataItems(containerID);
-        EasyMock.expectLastCall().andThrow(new NoSuchContainerException());
+        EasyMock.expect(_dataModelProvider.removeDataItems(containerID)).andReturn(true);
+        EasyMock.expect(_dataModelProvider.removeDataItems(containerID)).andReturn(false);
+        EasyMock.expect(_dataModelProvider.removeDataItems(containerID)).andThrow(new NoSuchContainerException());
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        _dataModel.removeDataItems(containerID);
+        boolean removed1 = _dataModel.removeDataItems(containerID);
+        boolean removed2 = _dataModel.removeDataItems(containerID);
         try {
             _dataModel.removeDataItems(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown") ;
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
         // Assert Results of the test
-        // -- None --
+        assertTrue(removed1);
+        assertFalse(removed2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -576,8 +549,8 @@ public class DataModelTest {
         info = _dataModel.createMicroNetwork(netID, containerID, path, state, rpcURL, p2pURL);
         try {
             _dataModel.createMicroNetwork(netID, containerID, path, state, rpcURL, p2pURL);
-            fail ( "Expected MicroNetworkAlreadyExistsException was not thrown") ;
-        } catch ( MicroNetworkAlreadyExistsException e ) {
+            fail("Expected MicroNetworkAlreadyExistsException was not thrown");
+        } catch (MicroNetworkAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -587,7 +560,7 @@ public class DataModelTest {
         assertEquals(netID, info.getId());
         assertEquals(containerID, info.getContainerID());
         assertEquals(path, info.getPath());
-        assertEquals ( state, info.getState());
+        assertEquals(state, info.getState());
         assertEquals(rpcURL, info.getRpcURL());
         assertEquals(p2pURL, info.getP2pURL());
 
@@ -621,8 +594,8 @@ public class DataModelTest {
         _dataModel.updateMicroNetwork(microNetworkInfo);
         try {
             _dataModel.updateMicroNetwork(microNetworkInfo);
-            fail ( "Expected MicroNetworkAlreadyExistsException was not thrown") ;
-        } catch ( NoSuchMicroNetworkException e ) {
+            fail("Expected MicroNetworkAlreadyExistsException was not thrown");
+        } catch (NoSuchMicroNetworkException e) {
             // NOOP - Expected Exception
         }
 
@@ -647,33 +620,26 @@ public class DataModelTest {
         MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(netID, containerID, path, state, rpcURL, p2pURL);
 
         // Configure Mock Object Expectations
-        _dataModelProvider.getMicroNetwork(netID);
-        EasyMock.expectLastCall().andReturn(microNetworkInfo);
-        _dataModelProvider.getMicroNetwork(netID);
-        EasyMock.expectLastCall().andThrow(new NoSuchMicroNetworkException());
+        EasyMock.expect(_dataModelProvider.getMicroNetwork(netID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_dataModelProvider.getMicroNetwork(netID)).andReturn(null);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        MicroNetworkInfo info ;
-        info = _dataModel.getMicroNetwork(netID);
-        try {
-            _dataModel.getMicroNetwork(netID);
-            fail ( "Expected MicroNetworkAlreadyExistsException was not thrown") ;
-        } catch ( NoSuchMicroNetworkException e ) {
-            // NOOP - Expected Exception
-        }
+        MicroNetworkInfo info1 = _dataModel.getMicroNetwork(netID);
+        MicroNetworkInfo info2 = _dataModel.getMicroNetwork(netID);
 
         // Assert Results of the test
-        // -- None --
-        assertNotNull(info);
-        assertEquals(netID, info.getId());
-        assertEquals(containerID, info.getContainerID());
-        assertEquals(path, info.getPath());
-        assertEquals ( state, info.getState());
-        assertEquals(rpcURL, info.getRpcURL());
-        assertEquals(p2pURL, info.getP2pURL());
+        assertNotNull(info1);
+        assertEquals(netID, info1.getId());
+        assertEquals(containerID, info1.getContainerID());
+        assertEquals(path, info1.getPath());
+        assertEquals(state, info1.getState());
+        assertEquals(rpcURL, info1.getRpcURL());
+        assertEquals(p2pURL, info1.getP2pURL());
+
+        assertNull(info2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);
@@ -686,25 +652,19 @@ public class DataModelTest {
         String netID = UUID.randomUUID().toString();
 
         // Configure Mock Object Expectations
-        _dataModelProvider.removeMicroNetwork(netID);
-        EasyMock.expectLastCall();
-        _dataModelProvider.removeMicroNetwork(netID);
-        EasyMock.expectLastCall().andThrow(new NoSuchMicroNetworkException());
+        EasyMock.expect(_dataModelProvider.removeMicroNetwork(netID)).andReturn(true);
+        EasyMock.expect(_dataModelProvider.removeMicroNetwork(netID)).andReturn(false);
 
         // Replay the Mock Objects
         EasyMock.replay(_dataModelProvider);
 
         // Execute the method being tested
-        _dataModel.removeMicroNetwork(netID);
-        try {
-            _dataModel.removeMicroNetwork(netID);
-            fail ( "Expected MicroNetworkAlreadyExistsException was not thrown") ;
-        } catch ( NoSuchMicroNetworkException e ) {
-            // NOOP - Expected Exception
-        }
+        boolean removed1 = _dataModel.removeMicroNetwork(netID);
+        boolean removed2 = _dataModel.removeMicroNetwork(netID);
 
         // Assert Results of the test
-        // -- None --
+        assertTrue(removed1);
+        assertFalse(removed2);
 
         // Verify the Mock Objects
         EasyMock.verify(_dataModelProvider);

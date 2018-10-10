@@ -26,16 +26,12 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         DataModel dataModel = getDataModel();
 
-        try {
-            dataModel.getDataItem("An ID");
-            fail();
-        } catch (NoSuchDataItemException e) {
-            //Good
-        }
+        DataItemInfo fetchedDataItem = dataModel.getDataItem("An ID");
+        assertNull(fetchedDataItem);
 
         DataItemInfo createdDataItem = dataModel.createDataItem(testDataItem.getId(), testDataItem.getSize(), testDataItem.getDataHash());
 
-        DataItemInfo fetchedDataItem = dataModel.getDataItem(testDataItem.getId());
+        fetchedDataItem = dataModel.getDataItem(testDataItem.getId());
 
         assertEquals(createdDataItem, testDataItem);
         assertEquals(testDataItem, fetchedDataItem);
@@ -73,16 +69,12 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         DataModel dataModel = getDataModel();
 
-        try {
-            dataModel.getDataItem("An ID");
-            fail();
-        } catch (NoSuchDataItemException e) {
-            //Good
-        }
+        DataItemInfo fetchedDataItem = dataModel.getDataItem("An ID");
+        assertNull(fetchedDataItem);
 
         DataItemInfo createdDataItem = dataModel.createDataItem(testDataItem.getId(), testDataItem.getSize(), testDataItem.getDataHash());
 
-        DataItemInfo fetchedDataItem = dataModel.getDataItem(testDataItem.getId());
+        fetchedDataItem = dataModel.getDataItem(testDataItem.getId());
         fetchedDataItem.setSize(5678);
         fetchedDataItem.setDataHash("shazam");
 
@@ -127,7 +119,6 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         ContainerInfo containerInfo = dataModel.createContainer(containerID, 0, null);
         DataItemInfo dataItemInfo = dataModel.createDataItem(id, size, dataHash);
-        ;
 
         assertFalse(dataModel.isDataItemInContainer(id, containerID));
 
@@ -231,12 +222,8 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         dataModel.createContainer(containerID, 0, null);
 
-        try {
-            dataModel.removeDataItemFromContainer(chunkID, containerID);
-            fail("Expected NoSuchDataItemException was not thrown");
-        } catch (NoSuchDataItemException e) {
-            // NOOP - Expected Exception
-        }
+        boolean removed = dataModel.removeDataItemFromContainer(chunkID, containerID);
+        assertFalse(removed);
     }
 
     @Test
@@ -281,14 +268,11 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         dataModel.createDataItem(chunkID, 100, "hash");
 
-        dataModel.removeDataItem(chunkID);
+        boolean removed = dataModel.removeDataItem(chunkID);
+        assertTrue(removed);
 
-        try {
-            dataModel.getDataItem(chunkID);
-            fail("Expected NoSuchDataItemException was not thrown");
-        } catch (NoSuchDataItemException e) {
-            // NOOP - Expected Exception
-        }
+        DataItemInfo info = dataModel.getDataItem(chunkID);
+        assertNull(info);
     }
 
     @Test
@@ -297,13 +281,8 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         String chunkID = UUID.randomUUID().toString();
 
-
-        try {
-            dataModel.removeDataItem(chunkID);
-            fail("Expected NoSuchDataItemException was not thrown");
-        } catch (NoSuchDataItemException e) {
-            // NOOP - Expected Exception
-        }
+        boolean removed = dataModel.removeDataItem(chunkID);
+        assertFalse(removed);
     }
 
     @Test
@@ -329,7 +308,25 @@ public abstract class AbstractDataModelDataItemInfoTest {
         dataModel.addDataItemToContainer(chunkID3, containerID);
         dataModel.addDataItemToContainer(chunkID4, containerID);
 
-        dataModel.removeDataItems(containerID);
+        boolean removed = dataModel.removeDataItems(containerID);
+        assertTrue(removed);
+
+        List<DataItemInfo> infoList = dataModel.getDataItems(containerID);
+
+        assertNotNull(infoList);
+        assertEquals(0, infoList.size());
+    }
+
+    @Test
+    public void testRemoveItemsWhenNoItemsAvailable() throws Exception {
+        DataModel dataModel = getDataModel();
+
+        String containerID = UUID.randomUUID().toString();
+
+        dataModel.createContainer(containerID, 0, null);
+
+        boolean removed = dataModel.removeDataItems(containerID);
+        assertFalse(removed);
 
         List<DataItemInfo> infoList = dataModel.getDataItems(containerID);
 

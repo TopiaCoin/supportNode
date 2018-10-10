@@ -116,7 +116,7 @@ public class BusinessLogicTest {
         String containerID = UUID.randomUUID().toString();
 
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataModel.getContainer(containerID)).andThrow(new NoSuchContainerException("")) ;
+        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -556,7 +556,7 @@ public class BusinessLogicTest {
         String containerID = UUID.randomUUID().toString();
 
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataModel.getContainer(containerID)).andThrow(new NoSuchContainerException());
+        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -923,7 +923,7 @@ public class BusinessLogicTest {
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataModel.getDataItem(chunkID)).andThrow( new NoSuchDataItemException()) ;
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -1275,7 +1275,7 @@ public class BusinessLogicTest {
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataModel.getDataItem(chunkID)).andThrow(new NoSuchDataItemException());
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);

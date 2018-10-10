@@ -56,18 +56,20 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public ContainerInfo createContainer(String id, long expirationDate, Challenge challenge) throws ContainerAlreadyExistsException {
-		if(_containerMap.containsKey(id)) {
-			throw new ContainerAlreadyExistsException("Container with id " + id + " already exists");
+	public ContainerInfo createContainer(String containerID, long expirationDate, Challenge challenge)
+			throws ContainerAlreadyExistsException {
+		if(_containerMap.containsKey(containerID)) {
+			throw new ContainerAlreadyExistsException("Container with id " + containerID + " already exists");
 		}
-		ContainerInfo info = new ContainerInfo(id, expirationDate, challenge);
-		_containerMap.put(id, info);
-		_containerDataItemMap.put(id, new ArrayList<>());
+		ContainerInfo info = new ContainerInfo(containerID, expirationDate, challenge);
+		_containerMap.put(containerID, info);
+		_containerDataItemMap.put(containerID, new ArrayList<>());
 		return info;
 	}
 
 	@Override
-	public void updateContainer(ContainerInfo updatedContainer) throws NoSuchContainerException {
+	public void updateContainer(ContainerInfo updatedContainer)
+			throws NoSuchContainerException {
 		if (!_containerMap.containsKey(updatedContainer.getId())) {
 			throw new NoSuchContainerException("No container exists with the requested ID");
 		}
@@ -76,23 +78,21 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public ContainerInfo getContainer(String id) throws NoSuchContainerException {
-		if (!_containerMap.containsKey(id)) {
-			throw new NoSuchContainerException("No container exists with the requested ID");
+	public ContainerInfo getContainer(String containerID) {
+		if ( !_containerMap.containsKey(containerID)) {
+			return null;
 		}
-		return new ContainerInfo(_containerMap.get(id));
+		return new ContainerInfo(_containerMap.get(containerID));
 	}
 
 	@Override
-	public void removeContainer(String id) throws NoSuchContainerException {
-		if (!_containerMap.containsKey(id)) {
-			throw new NoSuchContainerException("No container exists with the requested ID");
-		}
-		_containerMap.remove(id);
+	public boolean removeContainer(String containerID) {
+		return (_containerMap.remove(containerID) != null);
 	}
 
 	@Override
-	public void addDataItemToContainer(String dataItemID, String containerID) throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
+	public void addDataItemToContainer(String dataItemID, String containerID)
+			throws NoSuchContainerException, DataItemAlreadyExistsException, NoSuchDataItemException {
 		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
 		if ( dataItemInfo == null ) {
 			throw new NoSuchDataItemException("The specified data item does not exist" ) ;
@@ -108,10 +108,11 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public boolean removeDataItemFromContainer(String dataItemID, String containerID) throws NoSuchContainerException, NoSuchDataItemException {
+	public boolean removeDataItemFromContainer(String dataItemID, String containerID)
+			throws NoSuchContainerException {
 		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
 		if ( dataItemInfo == null ) {
-			throw new NoSuchDataItemException("The specified data item does not exist" ) ;
+			return false;
 		}
 		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
 		if ( dataItemList == null ) {
@@ -121,7 +122,8 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public boolean isDataItemInContainer(String dataItemID, String containerID) throws NoSuchContainerException {
+	public boolean isDataItemInContainer(String dataItemID, String containerID)
+			throws NoSuchContainerException {
 		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
 		if ( dataItemInfo == null ) {
 			return false ;
@@ -134,17 +136,19 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public DataItemInfo createDataItem(String id, long size, String dataHash) throws DataItemAlreadyExistsException {
-		if(_dataItemMap.containsKey(id)) {
-			throw new DataItemAlreadyExistsException("DataItem with id " + id + " already exists");
+	public DataItemInfo createDataItem(String dataItemID, long size, String dataHash)
+			throws DataItemAlreadyExistsException {
+		if(_dataItemMap.containsKey(dataItemID)) {
+			throw new DataItemAlreadyExistsException("DataItem with id " + dataItemID + " already exists");
 		}
-		DataItemInfo item = new DataItemInfo(id, size, dataHash);
-		_dataItemMap.put(id, item);
+		DataItemInfo item = new DataItemInfo(dataItemID, size, dataHash);
+		_dataItemMap.put(dataItemID, item);
 		return item;
 	}
 
 	@Override
-	public void updateDataItem(DataItemInfo updatedDataItem) throws NoSuchDataItemException {
+	public void updateDataItem(DataItemInfo updatedDataItem)
+			throws NoSuchDataItemException {
 		if (!_dataItemMap.containsKey(updatedDataItem.getId())) {
 			throw new NoSuchDataItemException("No DataItem exists with the requested ID");
 		}
@@ -153,15 +157,16 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public DataItemInfo getDataItem(String id) throws NoSuchDataItemException {
-		if (!_dataItemMap.containsKey(id)) {
-			throw new NoSuchDataItemException("No DataItem exists with the requested ID");
+	public DataItemInfo getDataItem(String dataItemID) {
+		if (!_dataItemMap.containsKey(dataItemID)) {
+			return null;
 		}
-		return new DataItemInfo(_dataItemMap.get(id));
+		return new DataItemInfo(_dataItemMap.get(dataItemID));
 	}
 
 	@Override
-	public List<DataItemInfo> getDataItems(String containerID) throws NoSuchContainerException {
+	public List<DataItemInfo> getDataItems(String containerID)
+			throws NoSuchContainerException {
 		List<DataItemInfo> items = _containerDataItemMap.get(containerID);
 		if (items == null) {
 			throw new NoSuchContainerException("No container exists with the requested ID");
@@ -178,40 +183,44 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public void removeDataItem(String id) throws NoSuchDataItemException {
-		DataItemInfo item = _dataItemMap.get(id);
-		if (item == null) {
-			throw new NoSuchDataItemException("No dataItem exists with the requested ID");
-		}
+	public boolean removeDataItem(String dataItemID) {
+//		DataItemInfo item = _dataItemMap.get(dataItemID);
 //		_containerDataItemMap.get(item.getContainerID()).remove(item);
-		_dataItemMap.remove(id);
+		return (_dataItemMap.remove(dataItemID) != null);
 	}
 
 	@Override
-	public void removeDataItems(String containerID) throws NoSuchContainerException {
+	public boolean removeDataItems(String containerID)
+			throws NoSuchContainerException {
+		boolean removedItems = false ;
 		List<DataItemInfo> items = _containerDataItemMap.get(containerID);
 		if (items == null) {
 			throw new NoSuchContainerException("No container exists with the requested ID");
 		}
 		Iterator<DataItemInfo> iterator = items.iterator();
 		while (iterator.hasNext()) {
+			removedItems = true ;
 			_dataItemMap.remove(iterator.next().getId());
 			iterator.remove();
 		}
+
+		return removedItems;
 	}
 
 	@Override
-	public MicroNetworkInfo createMicroNetwork(String id, String containerID, String path, MicroNetworkState state, String rpcURL, String p2pURL) throws MicroNetworkAlreadyExistsException {
-		if(_microNetworkMap.containsKey(id)) {
-			throw new MicroNetworkAlreadyExistsException("Micro Network with id " + id + " already exists");
+	public MicroNetworkInfo createMicroNetwork(String microNetworkID, String containerID, String path, MicroNetworkState state, String rpcURL, String p2pURL)
+			throws MicroNetworkAlreadyExistsException {
+		if(_microNetworkMap.containsKey(microNetworkID)) {
+			throw new MicroNetworkAlreadyExistsException("Micro Network with id " + microNetworkID + " already exists");
 		}
-		MicroNetworkInfo info = new MicroNetworkInfo(id, containerID, path, state, rpcURL, p2pURL);
-		_microNetworkMap.put(id, info);
+		MicroNetworkInfo info = new MicroNetworkInfo(microNetworkID, containerID, path, state, rpcURL, p2pURL);
+		_microNetworkMap.put(microNetworkID, info);
 		return info;
 	}
 
 	@Override
-	public void updateMicroNetwork(MicroNetworkInfo updatedMicroNetwork) throws NoSuchMicroNetworkException {
+	public void updateMicroNetwork(MicroNetworkInfo updatedMicroNetwork)
+			throws NoSuchMicroNetworkException {
 		if (!_microNetworkMap.containsKey(updatedMicroNetwork.getId())) {
 			throw new NoSuchMicroNetworkException("No Micro Network exists with the requested ID");
 		}
@@ -220,32 +229,30 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	}
 
 	@Override
-	public MicroNetworkInfo getMicroNetwork(String id) throws NoSuchMicroNetworkException {
-		if (!_microNetworkMap.containsKey(id)) {
-			throw new NoSuchMicroNetworkException("No Micro Network exists with the requested ID");
+	public MicroNetworkInfo getMicroNetwork(String microNetworkID) {
+		if (!_microNetworkMap.containsKey(microNetworkID)) {
+			return null;
 		}
-		return new MicroNetworkInfo(_microNetworkMap.get(id));
+		return new MicroNetworkInfo(_microNetworkMap.get(microNetworkID));
 	}
 
 	@Override
-	public void removeMicroNetwork(String id) throws NoSuchMicroNetworkException {
-		MicroNetworkInfo item = _microNetworkMap.get(id);
-		if (item == null) {
-			throw new NoSuchMicroNetworkException("No Micro Network exists with the requested ID");
-		}
-		_microNetworkMap.remove(id);
+	public boolean removeMicroNetwork(String microNetworkID) {
+		return (_microNetworkMap.remove(microNetworkID) != null);
 	}
 
-	@Override public BlockchainInfo createBlockchain(String id, String localPath) throws BlockchainAlreadyExistsException {
-		if(_blockchainInfoMap.containsKey(id)) {
-			throw new BlockchainAlreadyExistsException("Blockchain with id " + id + " already exists");
+	@Override public BlockchainInfo createBlockchain(String blockchainID, String localPath)
+			throws BlockchainAlreadyExistsException {
+		if(_blockchainInfoMap.containsKey(blockchainID)) {
+			throw new BlockchainAlreadyExistsException("Blockchain with id " + blockchainID + " already exists");
 		}
-		BlockchainInfo info = new BlockchainInfo(id, localPath);
-		_blockchainInfoMap.put(id, info);
+		BlockchainInfo info = new BlockchainInfo(blockchainID, localPath);
+		_blockchainInfoMap.put(blockchainID, info);
 		return info;
 	}
 
-	@Override public void updateBlockchain(BlockchainInfo updatedBlockchainInfo) throws NoSuchBlockchainException {
+	@Override public void updateBlockchain(BlockchainInfo updatedBlockchainInfo)
+			throws NoSuchBlockchainException {
 		if (!_blockchainInfoMap.containsKey(updatedBlockchainInfo.getId())) {
 			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
 		}
@@ -253,19 +260,15 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		_blockchainInfoMap.put(blockchainToUpdate.getId(), blockchainToUpdate);
 	}
 
-	@Override public BlockchainInfo getBlockchain(String id) throws NoSuchBlockchainException {
-		if (!_blockchainInfoMap.containsKey(id)) {
-			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
+	@Override public BlockchainInfo getBlockchain(String blockchainID) {
+		if (!_blockchainInfoMap.containsKey(blockchainID)) {
+			return null;
 		}
-		return new BlockchainInfo(_blockchainInfoMap.get(id));
+		return new BlockchainInfo(_blockchainInfoMap.get(blockchainID));
 	}
 
-	@Override public void removeBlockchain(String id) throws NoSuchBlockchainException {
-		BlockchainInfo item = _blockchainInfoMap.get(id);
-		if (item == null) {
-			throw new NoSuchBlockchainException("No Blockchain exists with the requested ID");
-		}
-		_blockchainInfoMap.remove(id);
+	@Override public boolean removeBlockchain(String blockchainID) {
+		return (_blockchainInfoMap.remove(blockchainID) != null);
 	}
 
 }
