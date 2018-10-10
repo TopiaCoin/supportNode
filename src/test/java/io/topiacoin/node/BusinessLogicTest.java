@@ -128,8 +128,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 ContainerConnectionInfo fetchedContainerConnectionInfo = bl.getContainer(containerID);
-                fail ( "Expected NoSuchContainerException was not thrown");
-            } catch ( NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -164,8 +164,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 ContainerConnectionInfo fetchedContainerConnectionInfo = bl.getContainer(containerID);
-                fail ( "Expected NoSuchContainerException was not thrown");
-            } catch ( NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -349,7 +349,7 @@ public class BusinessLogicTest {
         List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
         nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
 
-        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList) ;
+        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList);
         Future<Void> syncFuture = new CompletedFuture<>(null);
 
         // Configure the Mock Objects with Expected Behavior
@@ -396,7 +396,7 @@ public class BusinessLogicTest {
         List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
         nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
 
-        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList) ;
+        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList);
         Future<Void> syncFuture = new CompletedFuture<>(null);
 
         // Configure the Mock Objects with Expected Behavior
@@ -452,8 +452,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
-                fail("Expected NoSuchContainerException was not thrown") ;
-            } catch ( NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -495,8 +495,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
-                fail ( "Expeted MicroNetworkAlreadyExistsException was not thrown") ;
-            } catch ( MicroNetworkAlreadyExistsException e ) {
+                fail("Expeted MicroNetworkAlreadyExistsException was not thrown");
+            } catch (MicroNetworkAlreadyExistsException e) {
                 // NOOP - Expected Exception
             }
 
@@ -569,7 +569,7 @@ public class BusinessLogicTest {
             try {
                 bl.removeContainer(containerID);
                 fail("Expected NoSuchContainerException was not thrown");
-            } catch ( NoSuchContainerException e ){
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -594,20 +594,20 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
         EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(false);
         EasyMock.expect(_dataStorageManager.saveData(chunkID, dataHash, dataStream)).andReturn((long) data.length);
-        EasyMock.expect(_dataModel.createDataItem(chunkID, data.length, dataHash)).andReturn(dataItemInfo) ;
+        EasyMock.expect(_dataModel.createDataItem(chunkID, data.length, dataHash)).andReturn(dataItemInfo);
 
         // Switch the Mock Objects into Test Mode
         EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -638,14 +638,14 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
@@ -663,8 +663,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.storeChunk(containerID, chunkID, dataHash, dataStream);
-                fail ( "Expected NoSuchContainerException was not thrown") ;
-            } catch ( NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -687,14 +687,14 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
@@ -712,8 +712,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.storeChunk(containerID, chunkID, dataHash, dataStream);
-                fail ( "Expected DataItemAlreadyExistsException was not thrown") ;
-            } catch ( DataItemAlreadyExistsException e ) {
+                fail("Expected DataItemAlreadyExistsException was not thrown");
+            } catch (DataItemAlreadyExistsException e) {
                 // NOOP - Expected Exception
             }
 
@@ -736,14 +736,14 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
@@ -759,8 +759,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.storeChunk(containerID, chunkID, dataHash, dataStream);
-                fail ( "Expected DataItemAlreadyExistsException was not thrown");
-            } catch ( DataItemAlreadyExistsException e ) {
+                fail("Expected DataItemAlreadyExistsException was not thrown");
+            } catch (DataItemAlreadyExistsException e) {
                 // NOOP - Expected Exception
             }
 
@@ -783,14 +783,14 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234/";
         String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID,containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
         byte[] data = new byte[1024];
         String dataHash = HashUtilities.generateHash("SHA-256", data); // This has will not match the data!!
         new Random().nextBytes(data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash) ;
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
@@ -808,8 +808,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.storeChunk(containerID, chunkID, dataHash, dataStream);
-                fail ( "Expected CorruptDataItemException was not thrown");
-            } catch ( CorruptDataItemException e) {
+                fail("Expected CorruptDataItemException was not thrown");
+            } catch (CorruptDataItemException e) {
                 // NOOP - Expected Exception
             }
 
@@ -835,10 +835,6 @@ public class BusinessLogicTest {
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -857,7 +853,44 @@ public class BusinessLogicTest {
             boolean hasChunk = bl.hasChunk(containerID, chunkID);
 
             // Verify the expected Results of the Test
-            assertTrue (hasChunk);
+            assertTrue(hasChunk);
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
+    }
+
+    @Test
+    public void testHasChunkInModelButNotOnDisk() throws Exception {
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+        String chunkID = UUID.randomUUID().toString();
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+        String dataHash = HashUtilities.generateHash("SHA-256", data);
+
+        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
+        EasyMock.expect(_dataModel.isDataItemInContainer(chunkID, containerID)).andReturn(true);
+        EasyMock.expect(_dataStorageManager.hasData(chunkID)).andReturn(false);
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            boolean hasChunk = bl.hasChunk(containerID, chunkID);
+
+            // Verify the expected Results of the Test
+            assertFalse(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
             EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -876,10 +909,6 @@ public class BusinessLogicTest {
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -897,7 +926,7 @@ public class BusinessLogicTest {
             boolean hasChunk = bl.hasChunk(containerID, chunkID);
 
             // Verify the expected Results of the Test
-            assertFalse (hasChunk);
+            assertFalse(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
             EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -912,15 +941,6 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        byte[] data = new byte[1024];
-        new Random().nextBytes(data);
-        String dataHash = HashUtilities.generateHash("SHA-256", data);
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
         EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(null);
@@ -936,7 +956,7 @@ public class BusinessLogicTest {
             boolean hasChunk = bl.hasChunk(containerID, chunkID);
 
             // Verify the expected Results of the Test
-            assertFalse (hasChunk);
+            assertFalse(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
             EasyMock.verify(_dataModel, _dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
@@ -956,10 +976,6 @@ public class BusinessLogicTest {
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
@@ -976,8 +992,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 boolean hasChunk = bl.hasChunk(containerID, chunkID);
-                fail ( "Expected NoSuchContainerException was not thrown" ) ;
-            } catch ( NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -1287,8 +1303,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.removeChunk(containerID, chunkID);
-                fail ( "Expected NoSuchDataItemException was not thrown" );
-            } catch (NoSuchDataItemException e ) {
+                fail("Expected NoSuchDataItemException was not thrown");
+            } catch (NoSuchDataItemException e) {
                 // NOOP - Expected Exception
             }
 
@@ -1332,8 +1348,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.removeChunk(containerID, chunkID);
-                fail ( "Expected NoSuchContainerException was not thrown" );
-            } catch (NoSuchContainerException e ) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -1371,7 +1387,7 @@ public class BusinessLogicTest {
         String transactionID = "bar";
         long blockNumber = 1234567;
         String chunkHash = "SHA-256:deadbeef";
-        ChallengeSolution solution = new ChallengeSolution(verificationValue, transactionID, blockNumber, chunkHash) ;
+        ChallengeSolution solution = new ChallengeSolution(verificationValue, transactionID, blockNumber, chunkHash);
 
         Future<Void> submitFuture = new CompletedFuture<>(null);
 
@@ -1423,7 +1439,7 @@ public class BusinessLogicTest {
         String transactionID = "bar";
         long blockNumber = 1234567;
         String chunkHash = "SHA-256:deadbeef";
-        ChallengeSolution solution = new ChallengeSolution(verificationValue, transactionID, blockNumber, chunkHash) ;
+        ChallengeSolution solution = new ChallengeSolution(verificationValue, transactionID, blockNumber, chunkHash);
 
         Future<Void> submitFuture = new CompletedFuture<>(null);
 
@@ -1441,8 +1457,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.submitChallenge(challenege);
-                fail ("Expected InvalidChallengeException not thrown");
-            } catch ( InvalidChallengeException e ) {
+                fail("Expected InvalidChallengeException not thrown");
+            } catch (InvalidChallengeException e) {
                 // NOOP - Expected Exception
             }
 
@@ -1473,7 +1489,7 @@ public class BusinessLogicTest {
 
 
     private static class CompletedFuture<T> implements Future<T> {
-        private T result ;
+        private T result;
 
         public CompletedFuture(T result) {
             this.result = result;
