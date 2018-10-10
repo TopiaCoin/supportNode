@@ -24,13 +24,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 @RestController
 public class APIController {
@@ -153,14 +154,16 @@ public class APIController {
             HttpServletRequest request)
             throws IOException, DataItemAlreadyExistsException, CorruptDataItemException, NoSuchContainerException {
 
-        // TODO - Need to specify Container ID, Size, and Hash of the chunk
-
         if (TextUtils.isBlank(chunkID)) {
             throw new BadRequestException("ChunkID not specified.");
         }
 
         if (TextUtils.isBlank(containerID)) {
             throw new BadRequestException("ContainerID not specified.");
+        }
+
+        if (TextUtils.isBlank(dataHash)) {
+            throw new BadRequestException("Data Hash not specified.");
         }
 
         _log.info("Adding Chunk " + chunkID);
@@ -187,7 +190,7 @@ public class APIController {
 
         _log.info("Checking on Chunk " + chunkID);
 
-        if ( _businessLogic.hasChunk(containerID, chunkID) ) {
+        if (_businessLogic.hasChunk(containerID, chunkID)) {
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -195,10 +198,9 @@ public class APIController {
     }
 
     @RequestMapping(value = "/chunk", method = RequestMethod.GET)
-    public void getChunk(
+    public ResponseEntity<StreamingResponseBody> getChunk(
             @RequestParam("chunkID") String chunkID,
-            @RequestParam("containerID") String containerID,
-            HttpServletResponse response)
+            @RequestParam("containerID") String containerID)
             throws IOException, CorruptDataItemException, NoSuchDataItemException, NoSuchContainerException {
 
         if (TextUtils.isBlank(chunkID)) {
@@ -210,9 +212,28 @@ public class APIController {
 
         _log.info("Getting Chunk " + chunkID);
 
-        _businessLogic.getChunk(containerID, chunkID, response.getOutputStream());
+        if (_businessLogic.getContainer(containerID) == null) {
+            throw new NoSuchContainerException("The specified container does not exist");
+        }
+        if (!_businessLogic.hasChunk(containerID, chunkID)) {
+            throw new NoSuchDataItemException("The specified chunk does not exist");
+        }
 
-//        response.sendError(HttpServletResponse.SC_NOT_FOUND, "No Such Chunk");
+        StreamingResponseBody streamingResponseBody = new StreamingResponseBody() {
+            @Override
+            public void writeTo(OutputStream outputStream) throws IOException {
+                try {
+                    _businessLogic.getChunk(containerID, chunkID, outputStream);
+                } catch (NoSuchDataItemException e) {
+                    throw new IOException();
+                } catch (CorruptDataItemException e) {
+                    throw new IOException();
+                } catch (NoSuchContainerException e) {
+                    throw new IOException();
+                }
+            }
+        };
+        return new ResponseEntity<>(streamingResponseBody, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/chunk", method = RequestMethod.DELETE)

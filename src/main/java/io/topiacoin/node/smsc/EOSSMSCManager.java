@@ -28,7 +28,7 @@ public class EOSSMSCManager implements SMSCManager {
     private String _stakingAccount;
     private String _signingAccount;
 
-    @Autowired
+//    @Autowired
     private String contract;
 
     private EOSRPCAdapter _eosRPCAdapter;

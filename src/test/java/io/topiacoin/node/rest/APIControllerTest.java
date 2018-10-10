@@ -11,28 +11,33 @@ import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ChallengeChunkInfo;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
-import static junit.framework.TestCase.*;
+import static org.junit.Assert.*;
 
 public class APIControllerTest {
 
     // -------- getContainer() --------
 
     @Test
-    public void testGetContainer() throws Exception  {
+    public void testGetContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String rpcURL = "http://localhost:1234/";
@@ -57,10 +62,10 @@ public class APIControllerTest {
         ResponseEntity<ContainerConnectionInfo> response = controller.getContainer(containerID);
 
         // Verify the expected Results
-        assertNotNull(response) ;
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         ContainerConnectionInfo fetchedInfo = response.getBody();
-        assertNotNull ( fetchedInfo) ;
+        assertNotNull(fetchedInfo);
         assertEquals(containerID, fetchedInfo.getContainerID());
         assertEquals(rpcURL, fetchedInfo.getConnectionURL());
         assertEquals(p2pURL, fetchedInfo.getP2PURL());
@@ -70,7 +75,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetNonExistentContainer() throws Exception  {
+    public void testGetNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -91,8 +96,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<ContainerConnectionInfo> response = controller.getContainer(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown");
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -104,7 +109,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetContainerWithBlankID() throws Exception  {
+    public void testGetContainerWithBlankID() throws Exception {
 
         String containerID = "";
 
@@ -125,8 +130,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<ContainerConnectionInfo> response = controller.getContainer(containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -138,7 +143,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetContainerWithNullID() throws Exception  {
+    public void testGetContainerWithNullID() throws Exception {
 
         String containerID = null;
 
@@ -159,8 +164,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<ContainerConnectionInfo> response = controller.getContainer(containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -174,7 +179,7 @@ public class APIControllerTest {
     // -------- createContainer() --------
 
     @Test
-    public void testCreateContainer() throws Exception  {
+    public void testCreateContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -207,7 +212,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testCreateAlreadyExistingContainer() throws Exception  {
+    public void testCreateAlreadyExistingContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -230,8 +235,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.createContainer(request);
-            fail ( "Expected ContainerAlreadyExistsException was not thrown");
-        } catch ( ContainerAlreadyExistsException e ) {
+            fail("Expected ContainerAlreadyExistsException was not thrown");
+        } catch (ContainerAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -243,7 +248,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testCreateNonExistentContainer() throws Exception  {
+    public void testCreateNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -266,8 +271,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.createContainer(request);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -279,7 +284,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testCreateContainerWithNullRequest() throws Exception  {
+    public void testCreateContainerWithNullRequest() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -302,8 +307,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.createContainer(request);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -315,7 +320,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testCreateContainerWithBlankID() throws Exception  {
+    public void testCreateContainerWithBlankID() throws Exception {
 
         String containerID = "";
 
@@ -338,8 +343,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.createContainer(request);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -351,7 +356,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testCreateContainerWithNullID() throws Exception  {
+    public void testCreateContainerWithNullID() throws Exception {
 
         String containerID = null;
 
@@ -374,8 +379,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.createContainer(request);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -389,7 +394,7 @@ public class APIControllerTest {
     // -------- replicateContainer() --------
 
     @Test
-    public void testReplicateContainer() throws Exception  {
+    public void testReplicateContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
@@ -423,7 +428,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateAlreadyExistingContainer() throws Exception  {
+    public void testReplicateAlreadyExistingContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
@@ -434,7 +439,7 @@ public class APIControllerTest {
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new MicroNetworkAlreadyExistsException()) ;
+        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new MicroNetworkAlreadyExistsException());
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
@@ -447,8 +452,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected ContainerAlreadyExistsException was not thrown" );
-        } catch ( ContainerAlreadyExistsException e ) {
+            fail("Expected ContainerAlreadyExistsException was not thrown");
+        } catch (ContainerAlreadyExistsException e) {
             // NOOP - Expected Exception
         }
 
@@ -460,7 +465,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateNonExistentContainer() throws Exception  {
+    public void testReplicateNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
@@ -471,7 +476,7 @@ public class APIControllerTest {
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new NoSuchContainerException()) ;
+        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new NoSuchContainerException());
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
@@ -484,8 +489,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected NoSuchContainerException was not thrown" );
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -497,7 +502,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithNonExistentPeerID() throws Exception  {
+    public void testReplicateContainerWithNonExistentPeerID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
@@ -508,7 +513,7 @@ public class APIControllerTest {
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new NoSuchNodeException()) ;
+        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new NoSuchNodeException());
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
@@ -521,8 +526,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected NoSuchNodeException was not thrown" );
-        } catch ( NoSuchNodeException e ) {
+            fail("Expected NoSuchNodeException was not thrown");
+        } catch (NoSuchNodeException e) {
             // NOOP - Expected Exception
         }
 
@@ -534,7 +539,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithNullRequest() throws Exception  {
+    public void testReplicateContainerWithNullRequest() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
@@ -558,8 +563,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected BadRequestException was not thrown" );
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -571,7 +576,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithBlankID() throws Exception  {
+    public void testReplicateContainerWithBlankID() throws Exception {
 
         String containerID = "";
         String peerID = UUID.randomUUID().toString();
@@ -595,8 +600,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected BadRequestException was not thrown" );
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -608,7 +613,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithNullID() throws Exception  {
+    public void testReplicateContainerWithNullID() throws Exception {
 
         String containerID = null;
         String peerID = UUID.randomUUID().toString();
@@ -632,8 +637,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected BadRequestException was not thrown" );
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -645,7 +650,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithBlankPeerID() throws Exception  {
+    public void testReplicateContainerWithBlankPeerID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = "";
@@ -669,8 +674,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected BadRequestException was not thrown" );
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -682,7 +687,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testReplicateContainerWithNullPeerID() throws Exception  {
+    public void testReplicateContainerWithNullPeerID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String peerID = null;
@@ -706,8 +711,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             ResponseEntity<Void> response = controller.replicateContainer(request);
-            fail ( "Expected BadRequestException was not thrown" );
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -721,7 +726,7 @@ public class APIControllerTest {
     // -------- removeContainer() --------
 
     @Test
-    public void testRemoveContainer() throws Exception  {
+    public void testRemoveContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -752,7 +757,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveNonExistentContainer() throws Exception  {
+    public void testRemoveNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -774,8 +779,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeContainer(containerID);
-            fail ( "Expected NoSuchContainerException was not thrown");
-        } catch ( NoSuchContainerException e ) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -787,7 +792,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveContainerWithBlankID() throws Exception  {
+    public void testRemoveContainerWithBlankID() throws Exception {
 
         String containerID = "";
 
@@ -807,8 +812,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeContainer(containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -821,7 +826,7 @@ public class APIControllerTest {
 
 
     @Test
-    public void testRemoveContainerWithNullID() throws Exception  {
+    public void testRemoveContainerWithNullID() throws Exception {
 
         String containerID = null;
 
@@ -841,8 +846,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeContainer(containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -856,7 +861,7 @@ public class APIControllerTest {
     // -------- addChunk() --------
 
     @Test
-    public void testAddChunk() throws Exception  {
+    public void testAddChunk() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
@@ -892,7 +897,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testAddChunkWithNonExistentContainerID() throws Exception  {
+    public void testAddChunkWithNonExistentContainerID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
@@ -919,8 +924,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.addChunk(chunkID, containerID, dataHash, request);
-            fail ( "Expected NoSuchContainerException was not thrown");
-        } catch ( NoSuchContainerException e) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -932,7 +937,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testAddChunkWithBlankID() throws Exception  {
+    public void testAddChunkWithBlankID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = "";
@@ -956,8 +961,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.addChunk(chunkID, containerID, dataHash, request);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -969,7 +974,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testAddChunkWithNullID() throws Exception  {
+    public void testAddChunkWithNullID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = null;
@@ -993,8 +998,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.addChunk(chunkID, containerID, dataHash, request);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1006,7 +1011,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testAddChunkWithBlankContainerID() throws Exception  {
+    public void testAddChunkWithBlankContainerID() throws Exception {
 
         String containerID = "";
         String chunkID = UUID.randomUUID().toString();
@@ -1030,8 +1035,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.addChunk(chunkID, containerID, dataHash, request);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1043,7 +1048,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testAddChunkWithNullContainerID() throws Exception  {
+    public void testAddChunkWithNullContainerID() throws Exception {
 
         String containerID = null;
         String chunkID = UUID.randomUUID().toString();
@@ -1067,8 +1072,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.addChunk(chunkID, containerID, dataHash, request);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1082,23 +1087,37 @@ public class APIControllerTest {
     // -------- getChunk() --------
 
     @Test
-    public void testGetChunk() throws Exception  {
+    public void testGetChunk() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
         ServletOutputStream dataStream = null;
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+        ContainerConnectionInfo containerInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
-        HttpServletResponse servResponse = EasyMock.createMock(HttpServletResponse.class);
 
         // Setup Expectations
-        businessLogic.getChunk(containerID, chunkID, dataStream);
-        EasyMock.expectLastCall();
-        EasyMock.expect(servResponse.getOutputStream()).andReturn(dataStream);
+        EasyMock.expect(businessLogic.getContainer(containerID)).andReturn(containerInfo);
+        EasyMock.expect(businessLogic.hasChunk(containerID, chunkID)).andReturn(true);
+        Capture<OutputStream> outputStreamCapture = EasyMock.newCapture();
+        businessLogic.getChunk(EasyMock.eq(containerID), EasyMock.eq(chunkID), EasyMock.capture(outputStreamCapture));
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            @Override
+            public Object answer() throws Throwable {
+                OutputStream os = outputStreamCapture.getValue();
+                os.write(data);
+                return null;
+            }
+        });
 
         // Replay Mock Objects
-        EasyMock.replay(businessLogic, servResponse);
+        EasyMock.replay(businessLogic);
 
         // Setup the Test Object
         APIController controller = new APIController();
@@ -1106,72 +1125,46 @@ public class APIControllerTest {
         controller.initialize();
 
         // Execute the Test
-        controller.getChunk(chunkID, containerID, servResponse);
+        ResponseEntity<StreamingResponseBody> response = controller.getChunk(chunkID, containerID);
 
         // Verify the expected Results
-        // -- None --
+        assertNotNull(response);
+        StreamingResponseBody responseBody = response.getBody();
+        assertNotNull(responseBody);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        responseBody.writeTo(baos);
+        byte[] fetchedData = baos.toByteArray();
+
+        assertArrayEquals(data, fetchedData);
 
         // Verify the Mock Objects
-        EasyMock.verify(businessLogic, servResponse);
+        EasyMock.verify(businessLogic);
     }
 
+
     @Test
-    public void testGetNonExistentChunk() throws Exception  {
+    public void testGetNonExistentChunk() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
         ServletOutputStream dataStream = null;
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+        ContainerConnectionInfo containerInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
-        HttpServletResponse servResponse = EasyMock.createMock(HttpServletResponse.class);
 
         // Setup Expectations
-        EasyMock.expect(servResponse.getOutputStream()).andReturn(dataStream);
-        businessLogic.getChunk(containerID, chunkID, dataStream);
-        EasyMock.expectLastCall().andThrow(new NoSuchDataItemException());
+        EasyMock.expect(businessLogic.getContainer(containerID)).andReturn(containerInfo);
+        EasyMock.expect(businessLogic.hasChunk(containerID, chunkID)).andReturn(false);
 
         // Replay Mock Objects
-        EasyMock.replay(businessLogic, servResponse);
-
-        // Setup the Test Object
-        APIController controller = new APIController();
-        controller.setBusinessLogic(businessLogic);
-        controller.initialize();
-
-        // Execute the Test
-        try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected NoSuchDataItemException was not thrown" ) ;
-        } catch ( NoSuchDataItemException e ) {
-            // NOOP - Expected Exception
-        }
-
-        // Verify the expected Results
-        // -- None --
-
-        // Verify the Mock Objects
-        EasyMock.verify(businessLogic, servResponse);
-    }
-
-    @Test
-    public void testGetChunkFromNonExistentContainer() throws Exception  {
-
-        String containerID = UUID.randomUUID().toString();
-        String chunkID = UUID.randomUUID().toString();
-        ServletOutputStream dataStream = null;
-
-        // Create the Mock Objects
-        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
-        HttpServletResponse servResponse = EasyMock.createMock(HttpServletResponse.class);
-
-        // Setup Expectations
-        EasyMock.expect(servResponse.getOutputStream()).andReturn(dataStream);
-        businessLogic.getChunk(containerID, chunkID, dataStream);
-        EasyMock.expectLastCall().andThrow(new NoSuchContainerException());
-
-        // Replay Mock Objects
-        EasyMock.replay(businessLogic, servResponse);
+        EasyMock.replay(businessLogic);
 
         // Setup the Test Object
         APIController controller = new APIController();
@@ -1180,9 +1173,9 @@ public class APIControllerTest {
 
         // Execute the Test
         try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected NoSuchContainerException was not thrown" ) ;
-        } catch ( NoSuchContainerException e ) {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected NoSuchDataItemException was not thrown");
+        } catch (NoSuchDataItemException e) {
             // NOOP - Expected Exception
         }
 
@@ -1190,11 +1183,53 @@ public class APIControllerTest {
         // -- None --
 
         // Verify the Mock Objects
-        EasyMock.verify(businessLogic, servResponse);
+        EasyMock.verify(businessLogic);
     }
 
     @Test
-    public void testGetChunkWithBlankID() throws Exception  {
+    public void testGetChunkFromNonExistentContainer() throws Exception {
+
+        String containerID = UUID.randomUUID().toString();
+        String chunkID = UUID.randomUUID().toString();
+        ServletOutputStream dataStream = null;
+        byte[] data = new byte[1024];
+        new Random().nextBytes(data);
+
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+        ContainerConnectionInfo containerInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        // Create the Mock Objects
+        BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
+
+        // Setup Expectations
+        EasyMock.expect(businessLogic.getContainer(containerID)).andThrow(new NoSuchContainerException());
+
+        // Replay Mock Objects
+        EasyMock.replay(businessLogic);
+
+        // Setup the Test Object
+        APIController controller = new APIController();
+        controller.setBusinessLogic(businessLogic);
+        controller.initialize();
+
+        // Execute the Test
+        try {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
+            // NOOP - Expected Exception
+        }
+
+        // Verify the expected Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(businessLogic);
+    }
+
+    @Test
+    public void testGetChunkWithBlankID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = "";
@@ -1216,9 +1251,9 @@ public class APIControllerTest {
 
         // Execute the Test
         try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected BadRequestException was not thrown" ) ;
-        } catch ( BadRequestException e ) {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1230,7 +1265,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetChunkWithNullID() throws Exception  {
+    public void testGetChunkWithNullID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = null;
@@ -1252,9 +1287,9 @@ public class APIControllerTest {
 
         // Execute the Test
         try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected BadRequestException was not thrown" ) ;
-        } catch ( BadRequestException e ) {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1266,7 +1301,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetChunkWithBlankContainerID() throws Exception  {
+    public void testGetChunkWithBlankContainerID() throws Exception {
 
         String containerID = "";
         String chunkID = UUID.randomUUID().toString();
@@ -1288,9 +1323,9 @@ public class APIControllerTest {
 
         // Execute the Test
         try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected BadRequestException was not thrown" ) ;
-        } catch ( BadRequestException e ) {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1302,7 +1337,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testGetChunkWithNullContainerID() throws Exception  {
+    public void testGetChunkWithNullContainerID() throws Exception {
 
         String containerID = null;
         String chunkID = UUID.randomUUID().toString();
@@ -1324,9 +1359,9 @@ public class APIControllerTest {
 
         // Execute the Test
         try {
-            controller.getChunk(chunkID, containerID, servResponse);
-            fail ( "Expected BadRequestException was not thrown" ) ;
-        } catch ( BadRequestException e ) {
+            controller.getChunk(chunkID, containerID);
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1340,7 +1375,7 @@ public class APIControllerTest {
     // -------- removeChunk() --------
 
     @Test
-    public void testRemoveChunk() throws Exception  {
+    public void testRemoveChunk() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
@@ -1371,7 +1406,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveNonExistentChunk() throws Exception  {
+    public void testRemoveNonExistentChunk() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
@@ -1394,8 +1429,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected NoSuchDataItemException was not thrown");
-        } catch ( NoSuchDataItemException e) {
+            fail("Expected NoSuchDataItemException was not thrown");
+        } catch (NoSuchDataItemException e) {
             // NOOP - Expected Exception
         }
 
@@ -1407,7 +1442,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveChunkFromNonExistentContainer() throws Exception  {
+    public void testRemoveChunkFromNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
@@ -1430,8 +1465,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected NoSuchContainerException was not thrown");
-        } catch ( NoSuchContainerException e) {
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -1443,7 +1478,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveChunkWithBlankID() throws Exception  {
+    public void testRemoveChunkWithBlankID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = "";
@@ -1465,8 +1500,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1478,7 +1513,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveChunkWithNullID() throws Exception  {
+    public void testRemoveChunkWithNullID() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
         String chunkID = null;
@@ -1500,8 +1535,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1511,8 +1546,9 @@ public class APIControllerTest {
         // Verify the Mock Objects
         EasyMock.verify(businessLogic);
     }
+
     @Test
-    public void testRemoveChunkWithBlankContainerID() throws Exception  {
+    public void testRemoveChunkWithBlankContainerID() throws Exception {
 
         String containerID = "";
         String chunkID = UUID.randomUUID().toString();
@@ -1534,8 +1570,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1547,7 +1583,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testRemoveChunkWithNullContainerID() throws Exception  {
+    public void testRemoveChunkWithNullContainerID() throws Exception {
 
         String containerID = null;
         String chunkID = UUID.randomUUID().toString();
@@ -1569,8 +1605,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.removeChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1607,7 +1643,7 @@ public class APIControllerTest {
         ResponseEntity<Void> response = controller.hasChunk(chunkID, containerID);
 
         // Verify the expected Results
-        assertNotNull(response) ;
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // Verify the Mock Objects
@@ -1638,7 +1674,7 @@ public class APIControllerTest {
         ResponseEntity<Void> response = controller.hasChunk(chunkID, containerID);
 
         // Verify the expected Results
-        assertNotNull(response) ;
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 
         // Verify the Mock Objects
@@ -1668,8 +1704,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.hasChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1703,8 +1739,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.hasChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1738,8 +1774,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.hasChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1773,8 +1809,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.hasChunk(chunkID, containerID);
-            fail ( "Expected BadRequestException was not thrown") ;
-        } catch ( BadRequestException e ) {
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1788,7 +1824,7 @@ public class APIControllerTest {
     // -------- submitChallenge() --------
 
     @Test
-    public void testSubmitChallenge() throws Exception  {
+    public void testSubmitChallenge() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -1801,7 +1837,7 @@ public class APIControllerTest {
         chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
         chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
 
-        Challenge challenge = new Challenge(containerID, chunks) ;
+        Challenge challenge = new Challenge(containerID, chunks);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1822,15 +1858,15 @@ public class APIControllerTest {
         ResponseEntity<Void> response = controller.submitChallenge(challenge);
 
         // Verify the expected Results
-        assertNotNull ( response ) ;
-        assertEquals ( HttpStatus.ACCEPTED, response.getStatusCode());
+        assertNotNull(response);
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
 
         // Verify the Mock Objects
         EasyMock.verify(businessLogic);
     }
 
     @Test
-    public void testSubmitChallengeForNonExistentContainer() throws Exception  {
+    public void testSubmitChallengeForNonExistentContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
 
@@ -1843,7 +1879,7 @@ public class APIControllerTest {
         chunks.add(new ChallengeChunkInfo(chunkID2, 100, 100));
         chunks.add(new ChallengeChunkInfo(chunkID3, 200, 100));
 
-        Challenge challenge = new Challenge(containerID, chunks) ;
+        Challenge challenge = new Challenge(containerID, chunks);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
@@ -1863,8 +1899,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.submitChallenge(challenge);
-            fail ( "Expected NoSuchContainerException was not thrown");
-        } catch ( NoSuchContainerException e ){
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch (NoSuchContainerException e) {
             // NOOP - Expected Exception
         }
 
@@ -1876,7 +1912,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testSubmitChallengeWithNullChallenge() throws Exception  {
+    public void testSubmitChallengeWithNullChallenge() throws Exception {
 
         Challenge challenge = null;
 
@@ -1897,8 +1933,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.submitChallenge(challenge);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ){
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1910,7 +1946,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testSubmitChallengeWithBlankContainerID() throws Exception  {
+    public void testSubmitChallengeWithBlankContainerID() throws Exception {
 
         String containerID = "";
 
@@ -1942,8 +1978,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.submitChallenge(challenge);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ){
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1955,7 +1991,7 @@ public class APIControllerTest {
     }
 
     @Test
-    public void testSubmitChallengeWithNullContainerID() throws Exception  {
+    public void testSubmitChallengeWithNullContainerID() throws Exception {
 
         String containerID = null;
 
@@ -1987,8 +2023,8 @@ public class APIControllerTest {
         // Execute the Test
         try {
             controller.submitChallenge(challenge);
-            fail ( "Expected BadRequestException was not thrown");
-        } catch ( BadRequestException e ){
+            fail("Expected BadRequestException was not thrown");
+        } catch (BadRequestException e) {
             // NOOP - Expected Exception
         }
 
@@ -1998,5 +2034,9 @@ public class APIControllerTest {
         // Verify the Mock Objects
         EasyMock.verify(businessLogic);
     }
+
+
+    // ======== Scrath Test Method - Delete ========
+    // TODO Delete these test methods
 
 }
