@@ -71,13 +71,17 @@ public class DataModel {
     }
 
     public boolean removeDataItemFromContainer(String dataItemID, String containerID)
-            throws NoSuchContainerException, NoSuchDataItemException {
+            throws NoSuchContainerException {
         return _provider.removeDataItemFromContainer(dataItemID, containerID);
     }
 
     public boolean isDataItemInContainer(String dataItemID, String containerID)
             throws NoSuchContainerException {
         return _provider.isDataItemInContainer(dataItemID, containerID);
+    }
+
+    public boolean isDataItemInAnyContainer(String dataID) {
+        return _provider.isDataItemInAnyContainer(dataID);
     }
 
     public DataItemInfo createDataItem(String id, long size, String dataHash)
@@ -149,4 +153,5 @@ public class DataModel {
     public void setProvider(DataModelProvider provider) {
         _provider = provider;
     }
+
 }

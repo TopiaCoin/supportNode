@@ -14,6 +14,7 @@ import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import io.topiacoin.node.utilities.RelationshipMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Profile;
@@ -22,10 +23,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @Profile("memory")
@@ -37,7 +40,8 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	private Map<String, DataItemInfo> _dataItemMap = new HashMap<>();
 	private Map<String, MicroNetworkInfo> _microNetworkMap = new HashMap<>();
 	private Map<String, BlockchainInfo> _blockchainInfoMap = new HashMap<>();
-	private Map<String, List<DataItemInfo>> _containerDataItemMap = new HashMap<>();
+
+	private RelationshipMap _containerDataItemRelationship = new RelationshipMap();
 
 	// -------- Lifecycle Methods --------
 
@@ -63,7 +67,6 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		}
 		ContainerInfo info = new ContainerInfo(containerID, expirationDate, challenge);
 		_containerMap.put(containerID, info);
-		_containerDataItemMap.put(containerID, new ArrayList<>());
 		return info;
 	}
 
@@ -87,7 +90,12 @@ public class MemoryDataModelProvider implements DataModelProvider {
 
 	@Override
 	public boolean removeContainer(String containerID) {
-		return (_containerMap.remove(containerID) != null);
+		ContainerInfo containerInfo = _containerMap.remove(containerID) ;
+		if ( containerInfo == null){
+			return false;
+		}
+		_containerDataItemRelationship.removeAllRelationships(containerInfo) ;
+		return true ;
 	}
 
 	@Override
@@ -97,14 +105,13 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if ( dataItemInfo == null ) {
 			throw new NoSuchDataItemException("The specified data item does not exist" ) ;
 		}
-		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
-		if ( dataItemList == null ) {
-			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		ContainerInfo containerInfo = _containerMap.get(containerID) ;
+		if ( containerInfo == null ) {
+			throw new NoSuchContainerException("The specified container does not exist") ;
 		}
-		if ( dataItemList.contains(dataItemInfo)) {
-			throw new DataItemAlreadyExistsException("The specified data item is already in the specified container" ) ;
+		if ( !_containerDataItemRelationship.addRelationship(containerInfo, dataItemInfo) ) {
+			throw new DataItemAlreadyExistsException("The specified data item is already in the specified container") ;
 		}
-		dataItemList.add(dataItemInfo);
 	}
 
 	@Override
@@ -114,11 +121,11 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if ( dataItemInfo == null ) {
 			return false;
 		}
-		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
-		if ( dataItemList == null ) {
-			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		ContainerInfo containerInfo = _containerMap.get(containerID) ;
+		if ( containerInfo == null ) {
+			throw new NoSuchContainerException("The specified container does not exist") ;
 		}
-		return dataItemList.remove(dataItemInfo) ;
+		return _containerDataItemRelationship.removeRelationship(containerInfo, dataItemInfo);
 	}
 
 	@Override
@@ -128,11 +135,21 @@ public class MemoryDataModelProvider implements DataModelProvider {
 		if ( dataItemInfo == null ) {
 			return false ;
 		}
-		List<DataItemInfo> dataItemList = _containerDataItemMap.get(containerID);
-		if ( dataItemList == null ) {
-			throw new NoSuchContainerException("The specified container does not exist (" + containerID + ")");
+		ContainerInfo containerInfo = _containerMap.get(containerID) ;
+		if ( containerInfo == null ) {
+			throw new NoSuchContainerException("The specified container does not exist") ;
 		}
-		return dataItemList.contains(dataItemInfo);
+		return _containerDataItemRelationship.areRelated(containerInfo, dataItemInfo);
+	}
+
+	@Override
+	public boolean isDataItemInAnyContainer(String dataItemID){
+		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
+		if ( dataItemInfo == null ) {
+			return false ;
+		}
+
+		return _containerDataItemRelationship.getRelationships(dataItemInfo).size() > 0;
 	}
 
 	@Override
@@ -167,16 +184,17 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	@Override
 	public List<DataItemInfo> getDataItems(String containerID)
 			throws NoSuchContainerException {
-		List<DataItemInfo> items = _containerDataItemMap.get(containerID);
-		if (items == null) {
-			throw new NoSuchContainerException("No container exists with the requested ID");
+		ContainerInfo containerInfo = _containerMap.get(containerID) ;
+		if ( containerInfo == null ) {
+			throw new NoSuchContainerException("The specified Container does not exist") ;
 		}
+		Set<Object> items = _containerDataItemRelationship.getRelationships(containerInfo) ;
 
 		List<DataItemInfo> retItems = new ArrayList<DataItemInfo>();
 
-		Iterator<DataItemInfo> iterator = items.iterator();
+		Iterator<Object> iterator = items.iterator();
 		while (iterator.hasNext()) {
-			retItems.add(new DataItemInfo(iterator.next()));
+			retItems.add(new DataItemInfo((DataItemInfo) iterator.next()));
 		}
 
 		return retItems;
@@ -184,8 +202,8 @@ public class MemoryDataModelProvider implements DataModelProvider {
 
 	@Override
 	public boolean removeDataItem(String dataItemID) {
-//		DataItemInfo item = _dataItemMap.get(dataItemID);
-//		_containerDataItemMap.get(item.getContainerID()).remove(item);
+		DataItemInfo dataItemInfo = _dataItemMap.get(dataItemID);
+		_containerDataItemRelationship.removeAllRelationships(dataItemInfo);
 		return (_dataItemMap.remove(dataItemID) != null);
 	}
 
@@ -193,14 +211,15 @@ public class MemoryDataModelProvider implements DataModelProvider {
 	public boolean removeDataItems(String containerID)
 			throws NoSuchContainerException {
 		boolean removedItems = false ;
-		List<DataItemInfo> items = _containerDataItemMap.get(containerID);
-		if (items == null) {
+		ContainerInfo containerInfo = _containerMap.get(containerID) ;
+		if (containerInfo == null) {
 			throw new NoSuchContainerException("No container exists with the requested ID");
 		}
-		Iterator<DataItemInfo> iterator = items.iterator();
+		Set<Object> items = _containerDataItemRelationship.getRelationships(containerInfo) ;
+		Iterator<Object> iterator = items.iterator();
 		while (iterator.hasNext()) {
 			removedItems = true ;
-			_dataItemMap.remove(iterator.next().getId());
+			_dataItemMap.remove(((DataItemInfo)iterator.next()).getId());
 			iterator.remove();
 		}
 

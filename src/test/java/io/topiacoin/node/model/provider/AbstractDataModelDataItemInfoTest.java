@@ -126,9 +126,57 @@ public abstract class AbstractDataModelDataItemInfoTest {
 
         assertTrue(dataModel.isDataItemInContainer(id, containerID));
 
+        assertTrue(dataModel.isDataItemInAnyContainer(id)) ;
+
         dataModel.removeDataItemFromContainer(id, containerID);
 
         assertFalse(dataModel.isDataItemInContainer(id, containerID));
+
+        assertFalse(dataModel.isDataItemInAnyContainer(id)) ;
+    }
+
+    @Test
+    public void testIsDataItemInAnyContainer() throws Exception {
+        String containerID1 = "foo";
+        String containerID2 = "bar";
+        String id = "foo";
+        long size = 123456;
+        String dataHash = "SHA-256:beefbeef";
+
+        DataModel dataModel = getDataModel();
+
+        ContainerInfo containerInfo1 = dataModel.createContainer(containerID1, 0, null);
+        ContainerInfo containerInfo2 = dataModel.createContainer(containerID2, 0, null);
+        DataItemInfo dataItemInfo = dataModel.createDataItem(id, size, dataHash);
+
+        assertFalse(dataModel.isDataItemInContainer(id, containerID1));
+        assertFalse(dataModel.isDataItemInContainer(id, containerID2));
+        assertFalse(dataModel.isDataItemInAnyContainer(id)) ;
+
+        dataModel.addDataItemToContainer(id, containerID1);
+
+        assertTrue(dataModel.isDataItemInContainer(id, containerID1));
+        assertFalse(dataModel.isDataItemInContainer(id, containerID2));
+        assertTrue(dataModel.isDataItemInAnyContainer(id)) ;
+
+        dataModel.addDataItemToContainer(id, containerID2);
+
+        assertTrue(dataModel.isDataItemInContainer(id, containerID1));
+        assertTrue(dataModel.isDataItemInContainer(id, containerID2));
+        assertTrue(dataModel.isDataItemInAnyContainer(id)) ;
+
+        dataModel.removeDataItemFromContainer(id, containerID1);
+
+        assertFalse(dataModel.isDataItemInContainer(id, containerID1));
+        assertTrue(dataModel.isDataItemInContainer(id, containerID2));
+        assertTrue(dataModel.isDataItemInAnyContainer(id)) ;
+
+        dataModel.removeDataItemFromContainer(id, containerID2);
+
+        assertFalse(dataModel.isDataItemInContainer(id, containerID1));
+        assertFalse(dataModel.isDataItemInContainer(id, containerID2));
+        assertFalse(dataModel.isDataItemInAnyContainer(id)) ;
+
     }
 
     @Test

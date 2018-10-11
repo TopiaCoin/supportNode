@@ -42,6 +42,8 @@ public interface DataModelProvider {
     boolean isDataItemInContainer(String dataItemID, String containerID)
             throws NoSuchContainerException;
 
+    boolean isDataItemInAnyContainer(String dataID);
+
     DataItemInfo createDataItem(String dataItemID, long size, String dataHash)
             throws DataItemAlreadyExistsException;
 
