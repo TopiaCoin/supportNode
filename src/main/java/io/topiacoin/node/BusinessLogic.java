@@ -15,7 +15,6 @@ import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
-import io.topiacoin.node.model.DataModel;
 import io.topiacoin.node.model.MicroNetworkInfo;
 import io.topiacoin.node.model.NodeConnectionInfo;
 import io.topiacoin.node.proof.ProofSolver;
@@ -25,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -53,9 +51,6 @@ public class BusinessLogic {
     @Autowired
     private MicroNetworkManager _microNetworkManager;
 
-    @Autowired
-    private DataModel _dataModel;
-
     // -------- Lifecycle Methods --------
 
     @PostConstruct
@@ -63,7 +58,6 @@ public class BusinessLogic {
         _log.info("Initializing Business Logic");
 
         if (_dataStorageManager == null ||
-                _dataModel == null ||
                 _smscManager == null ||
                 _proofSolver == null ||
                 _microNetworkManager == null) {
@@ -88,10 +82,10 @@ public class BusinessLogic {
         MicroNetworkInfo microNetworkInfo = null;
 
         // Fetch the Container Info for the requested container from the Data Model
-        containerInfo = _dataModel.getContainer(containerID);
-        if (containerInfo == null) {
-            throw new NoSuchContainerException("The requested container (" + containerID + ") does not exist");
-        }
+//        containerInfo = _dataModel.getContainer(containerID);
+//        if (containerInfo == null) {
+//            throw new NoSuchContainerException("The requested container (" + containerID + ") does not exist");
+//        }
         microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
         if (microNetworkInfo == null) {
             throw new NoSuchContainerException("The requested container (" + containerID + ") is not hosted on this node.");
@@ -106,18 +100,18 @@ public class BusinessLogic {
             throws ContainerAlreadyExistsException, NoSuchContainerException {
 
         ContainerInfo containerInfo = null;
+        MicroNetworkInfo microNetworkInfo = null;
 
         // Check the Data Model to see if this container ID is assigned to the this node.
-        containerInfo = _dataModel.getContainer(containerID);
-        if (containerInfo == null) {
-            // If no info in Data Model, check the SMSC to see if this container ID is assigned to this node.
+        microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        if (microNetworkInfo == null) {
+            // If no info in Micro Network Manager, check the SMSC to see if this container ID is assigned to this node.
             try {
                 Future<ContainerInfo> containerInfoFuture = _smscManager.getContainerInfo(containerID);
                 containerInfo = containerInfoFuture.get();
 
-                if (containerInfo != null) {
-                    // Save the Container Info to the Data Model
-                    containerInfo = _dataModel.createContainer(containerInfo.getId(), containerInfo.getExpirationDate(), containerInfo.getChallenge());
+                if ( containerInfo == null) {
+                    throw new NoSuchContainerException("The specified container does not exist");
                 }
             } catch (InterruptedException e) {
                 _log.info("Interrupted while getting container info from the SMSC", e);
@@ -129,11 +123,11 @@ public class BusinessLogic {
                 // Proceed with the null containerInfo and let the rest of the code react accordingly.
             }
         }
-        if (containerInfo == null) {
+        if (microNetworkInfo == null) {
             throw new NoSuchContainerException("The specified container ID is not valid.");
         }
         // If we should be hosting this container, check the MNM to see if we are already hosting a micronetwork for this container ID
-        MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
+        microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
         if (microNetworkInfo != null) {
             throw new ContainerAlreadyExistsException("The specified container has already been created");
         }
@@ -150,19 +144,19 @@ public class BusinessLogic {
 
         try {
             // TODO - Check to see if this container ID is assigned to this node.
-            containerInfo = _dataModel.getContainer(containerID);
+//            containerInfo = _dataModel.getContainer(containerID);
             if (containerInfo == null) {
                 Future<ContainerInfo> containerInfoFuture = _smscManager.getContainerInfo(containerID);
                 ;
                 containerInfo = containerInfoFuture.get();
 
-                if (containerInfo != null) {
-                    try {
-                        _dataModel.createContainer(containerInfo.getId(), containerInfo.getExpirationDate(), containerInfo.getChallenge());
-                    } catch (ContainerAlreadyExistsException e) {
-                        // NOOP - This might occur if an auto-sync has added it to the model while we were independently fetching it.
-                    }
-                }
+//                if (containerInfo != null) {
+//                    try {
+//                        _dataModel.createContainer(containerInfo.getId(), containerInfo.getExpirationDate(), containerInfo.getChallenge());
+//                    } catch (ContainerAlreadyExistsException e) {
+//                         NOOP - This might occur if an auto-sync has added it to the model while we were independently fetching it.
+//                    }
+//                }
             }
 
             if (containerInfo == null) {
@@ -208,10 +202,10 @@ public class BusinessLogic {
     public void removeContainer(String containerID)
             throws NoSuchContainerException {
 
-        ContainerInfo containerInfo = _dataModel.getContainer(containerID);
-        if ( containerInfo == null ) {
-            throw new NoSuchContainerException();
-        }
+//        ContainerInfo containerInfo = _dataModel.getContainer(containerID);
+//        if ( containerInfo == null ) {
+//            throw new NoSuchContainerException();
+//        }
         MicroNetworkInfo microNetworkInfo = _microNetworkManager.getBlockchainInfo(containerID);
         if ( microNetworkInfo != null ) {
             _microNetworkManager.destroyBlockchain(microNetworkInfo.getId());
@@ -230,15 +224,12 @@ public class BusinessLogic {
         }
 
         // Check to see if we already have this chunk for the specified container
-        if (_dataStorageManager.hasData(chunkID)) {
+        if (_dataStorageManager.hasData(containerID, chunkID)) {
             throw new DataItemAlreadyExistsException("The specified Data item already exists");
         }
 
         // Add the chunk to the Data Storage Manager
-        long size = _dataStorageManager.saveData(chunkID, dataHash, dataStream);
-
-        // Add the chunk to the Data Model
-        _dataModel.createDataItem(chunkID, size, dataHash);
+        long size = _dataStorageManager.saveData(containerID, chunkID, dataHash, dataStream);
     }
 
     public boolean hasChunk(String containerID, String chunkID)
@@ -247,17 +238,17 @@ public class BusinessLogic {
         boolean found = true ;
 
         // Check the Data Model to see if we have this chunk listed for this container ID
-        DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
-        found &= (chunkInfo != null);
+//        DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+//        found &= (chunkInfo != null);
 
-        if ( found ) {
-            found &= _dataModel.isDataItemInContainer(chunkID, containerID);
-        }
+//        if ( found ) {
+//            found &= _dataModel.isDataItemInContainer(chunkID, containerID);
+//        }
 
         // Check the Data Storage Manger to see if we have this chunk.
         if ( found ) {
             try {
-                found &= _dataStorageManager.hasData(chunkID);
+                found &= _dataStorageManager.hasData(containerID, chunkID);
             } catch (IOException e) {
                 found = false ;
             }
@@ -271,19 +262,19 @@ public class BusinessLogic {
 
         try {
             // Check the Data Model to see if we have this chunk listed for this container ID
-            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
-            if (chunkInfo == null) {
-                throw new NoSuchDataItemException("The requested Chunk does not exist");
-            }
-            if ( !_dataModel.isDataItemInContainer(chunkID, containerID)) {
-                throw new NoSuchDataItemException("The requested Chunk does not exist");
-            }
+//            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+//            if (chunkInfo == null) {
+//                throw new NoSuchDataItemException("The requested Chunk does not exist");
+//            }
+//            if ( !_dataModel.isDataItemInContainer(chunkID, containerID)) {
+//                throw new NoSuchDataItemException("The requested Chunk does not exist");
+//            }
             // Check the Data Storage Manger to see if we have this chunk.
-            if (!_dataStorageManager.hasData(chunkID)) {
+            if (!_dataStorageManager.hasData(containerID, chunkID)) {
                 throw new NoSuchDataItemException("The Requested Chunk is not available");
             }
             // Retrieve the chunk and write it to the provided output stream.
-            _dataStorageManager.fetchData(chunkInfo.getId(), chunkInfo.getDataHash(), dataStream);
+            _dataStorageManager.fetchData(containerID, chunkID, dataStream);
         } catch (IOException e) {
             _log.warn("IOException getting chunk " + chunkID, e);
         }
@@ -293,17 +284,19 @@ public class BusinessLogic {
         throws NoSuchContainerException, NoSuchDataItemException {
 
         try {
-            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
-            if (chunkInfo == null) {
-                throw new NoSuchDataItemException("The requested Chunk does not exist");
-            }
-            if (!_dataModel.isDataItemInContainer(chunkID, containerID)) {
-                throw new NoSuchDataItemException("The requested Chunk does not exist");
-            }
-
-            if ( _dataModel.removeDataItemFromContainer(chunkID, containerID)) {
-                _dataStorageManager.removeData(chunkID);
-            }
+//            DataItemInfo chunkInfo = _dataModel.getDataItem(chunkID);
+//            if (chunkInfo == null) {
+//                throw new NoSuchDataItemException("The requested Chunk does not exist");
+//            }
+//            if (!_dataModel.isDataItemInContainer(chunkID, containerID)) {
+//                throw new NoSuchDataItemException("The requested Chunk does not exist");
+//            }
+//
+//            if ( _dataModel.removeDataItemFromContainer(chunkID, containerID)) {
+                if ( !_dataStorageManager.removeData(containerID, chunkID)) {
+                    throw new NoSuchDataItemException("The requested chunk does not exist");
+                }
+//            }
         } catch (IOException e) {
             _log.warn("IOException removing chunk " + chunkID, e);
         }
@@ -313,7 +306,7 @@ public class BusinessLogic {
     public void submitChallenge(Challenge challenge) throws NoSuchContainerException, InvalidChallengeException {
 
         // Verify that we are actually hosing the container this challenege is for
-        ContainerInfo containerInfo = _dataModel.getContainer(challenge.getContainerID());
+//        ContainerInfo containerInfo = _dataModel.getContainer(challenge.getContainerID());
 
         // Verify that we can successfully solve the provided challenge
         ChallengeSolution solution = _proofSolver.generateSolution(challenge);
@@ -322,8 +315,8 @@ public class BusinessLogic {
         }
 
         // Store the Challenge in the data model
-        containerInfo.setChallenge(challenge);
-        _dataModel.updateContainer(containerInfo);
+//        containerInfo.setChallenge(challenge);
+//        _dataModel.updateContainer(containerInfo);
 
         // Submit the solution to this challenge to the SMSC
         Future<?> solutionFuture = _smscManager.submitProofSolution(challenge.getContainerID(), solution);
@@ -356,9 +349,5 @@ public class BusinessLogic {
 
     public void setMicroNetworkManager(MicroNetworkManager microNetworkManager) {
         _microNetworkManager = microNetworkManager;
-    }
-
-    public void setDataModel(DataModel dataModel) {
-        _dataModel = dataModel;
     }
 }

@@ -1,5 +1,7 @@
 package io.topiacoin.node.model;
 
+import java.util.Objects;
+
 public class BlockchainInfo {
 	private String _id;
 	private String _localPath;
@@ -43,5 +45,21 @@ public class BlockchainInfo {
 
 	public void setStatus(String _status) {
 		this._status = _status;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		BlockchainInfo that = (BlockchainInfo) o;
+		return Objects.equals(_id, that._id) &&
+				Objects.equals(_localPath, that._localPath) &&
+				Objects.equals(_status, that._status);
+	}
+
+	@Override
+	public int hashCode() {
+
+		return Objects.hash(_id, _localPath, _status);
 	}
 }

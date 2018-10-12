@@ -2,8 +2,12 @@ package io.topiacoin.node.storage;
 
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.InitializationException;
+import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.CorruptDataItemException;
+import io.topiacoin.node.model.ContainerInfo;
+import io.topiacoin.node.model.DataItemInfo;
+import io.topiacoin.node.model.DataModel;
 import io.topiacoin.node.storage.provider.DataStorageProvider;
 import io.topiacoin.node.utilities.HashUtilities;
 import org.apache.commons.logging.Log;
@@ -28,13 +32,20 @@ public class DataStorageManager {
     @Autowired
     private DataStorageProvider _dataStorageProvider ;
 
+    @Autowired
+    private DataModel _dataModel;
+
     @PostConstruct
     public void initialize() {
         _log.info("Initializing Data Storage Manager" ) ;
 
+        if ( _dataModel == null ) {
+            throw new InitializationException("Failed to initialize the Data Storage Manager.  Data Model was not configured.");
+        }
         if ( _dataStorageProvider == null ) {
             throw new InitializationException("Failed to initialize the Data Storage Manager.  Data Storage Provider was not configured.");
         }
+
         _log.info("Initialized Data Storage Manager" ) ;
     }
 
@@ -53,6 +64,8 @@ public class DataStorageManager {
      * the data model to record the existence of the data item, its hash, and its containerID, then pass the data item
      * to Data Storage for persistent storage.
      *
+     *
+     * @param containerID
      * @param dataID      The ID of the data item that is being saved.
      * @param dataHash    The cryptographic hash of this data item.
      * @param dataStream  The InputStream containing the raw bytes of the data item.
@@ -64,10 +77,15 @@ public class DataStorageManager {
      * @throws CorruptDataItemException       If the provided data item doesn't match its cryptographic hash.
      * @throws IOException                    If their is an exception saving the data item.
      */
-    public long saveData(String dataID, String dataHash, InputStream dataStream)
-            throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
-        if ( hasData(dataID)) {
+    public long saveData(String containerID, String dataID, String dataHash, InputStream dataStream)
+            throws IOException, DataItemAlreadyExistsException, CorruptDataItemException, NoSuchContainerException {
+
+        if ( hasData(containerID, dataID)) {
             throw new DataItemAlreadyExistsException("The specified data item already exists. (ID: " + dataID + ")");
+        }
+
+        if ( _dataModel.getContainer(containerID)== null) {
+            throw new NoSuchContainerException("The specified container does not exist.");
         }
 
         long size = -1 ;
@@ -76,8 +94,13 @@ public class DataStorageManager {
                 throw new CorruptDataItemException("The specified data item does not match the specified hash" );
             }
             size = _dataStorageProvider.saveData(dataID, dataStream);
+
+            _dataModel.createDataItem(dataID, size, dataHash);
+            _dataModel.addDataItemToContainer(dataID, containerID);
         } catch ( NoSuchAlgorithmException e ) {
             throw new CorruptDataItemException( "Unable to verify the data hash.", e) ;
+        } catch (NoSuchDataItemException e) {
+            // NOOP - It should exist because we just created it!
         }
 
         return size;
@@ -91,6 +114,8 @@ public class DataStorageManager {
      * the data model to record the existence of the data item, its hash, and its containerID, then pass the data item
      * to Data Storage for persistent storage.
      *
+     *
+     * @param containerID
      * @param dataID      The ID of the data item that is being saved.
      * @param dataHash    The cryptographic hash of this data item.
      * @param data        The array containing the raw bytes of this data item.
@@ -100,9 +125,9 @@ public class DataStorageManager {
      * @throws CorruptDataItemException       If the provided data item doesn't match its cryptographic hash.
      * @throws IOException                    If there is an exception saving the data item.
      */
-    public void saveData(String dataID, String dataHash, byte[] data)
-            throws IOException, DataItemAlreadyExistsException, CorruptDataItemException {
-        saveData(dataID, dataHash, new ByteArrayInputStream(data));
+    public void saveData(String containerID, String dataID, String dataHash, byte[] data)
+            throws IOException, DataItemAlreadyExistsException, CorruptDataItemException, NoSuchContainerException {
+        saveData(containerID, dataID, dataHash, new ByteArrayInputStream(data));
     }
 
     /**
@@ -110,18 +135,24 @@ public class DataStorageManager {
      * verified against the recorded hash to insure that it hasn't been corrupted.  If the data is found to be
      * corrupted, it will be purged from internal storage and an exception returned to the caller.
      *
+     * @param containerID
      * @param dataID      The ID of the data item that is being fetched.
      *
-     * @param dataHash
      * @return A byte array containing the raw bytes of the data item.
      *
      * @throws NoSuchDataItemException  If the specified data item does not exist in the specified container.
      * @throws CorruptDataItemException If the specified data item doesn't match its cryptographic hash.
      * @throws IOException              If there is an exception reading the data item.
      */
-    public byte[] fetchData(String dataID, String dataHash)
-            throws IOException, NoSuchDataItemException, CorruptDataItemException {
+    public byte[] fetchData(String containerID, String dataID)
+            throws IOException, NoSuchDataItemException, CorruptDataItemException, NoSuchContainerException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        if (!hasData(containerID, dataID)) {
+            throw new NoSuchDataItemException("The requested Data Item does not exist in the specified container");
+        }
+        DataItemInfo dataItemInfo = _dataModel.getDataItem(dataID);
+        String dataHash = dataItemInfo.getDataHash();
 
         _dataStorageProvider.fetchData(dataID, outputStream);
         outputStream.close();
@@ -143,26 +174,19 @@ public class DataStorageManager {
      * integrity will be verified against the recorded hash to insure that it hasn't been corrupted.  If the data is
      * found to be corrupted, it will be purged from internal storage and an exception returned to the caller.
      *
+     *
+     * @param containerID
      * @param dataID       The ID of the data item that is being fetched.
-     * @param dataHash
      * @param outputStream The OutputStream to which the data item should be written.
      *
      * @throws NoSuchDataItemException  If the specified data item does not exist in the specified container.
      * @throws CorruptDataItemException If the specified data item doesn't match its cryptographic hash.
      * @throws IOException              If there is an exception reading the data item.
      */
-    public void fetchData(String dataID, String dataHash, OutputStream outputStream)
-            throws IOException, NoSuchDataItemException, CorruptDataItemException {
+    public void fetchData(String containerID, String dataID, OutputStream outputStream)
+            throws IOException, NoSuchDataItemException, CorruptDataItemException, NoSuchContainerException {
 
-        byte[] data = fetchData(dataID, dataHash) ;
-
-        try {
-            if (!HashUtilities.verifyHash(dataHash, data)) {
-                throw new CorruptDataItemException("The requested data item is corrupt.");
-            }
-        } catch ( NoSuchAlgorithmException e ) {
-            throw new CorruptDataItemException("Unable to verify the data integrity.", e);
-        }
+        byte[] data = fetchData(containerID, dataID) ;
 
         outputStream.write(data);
     }
@@ -170,6 +194,7 @@ public class DataStorageManager {
     /**
      * Retrieves a specific sub-portion of the data item.  No verification is performed before returning the data.
      *
+     * @param containerID
      * @param dataID      The ID of the data item that is being fetched.
      * @param offset      The offset within the data item from which to read.
      * @param length      The number of bytes within the data item to read.
@@ -179,8 +204,12 @@ public class DataStorageManager {
      * @throws IOException             If there is an exception reading the data item.
      * @throws NoSuchDataItemException If the specified data item does not exist in the specified container.
      */
-    public byte[] fetchDataSubset(String dataID, int offset, int length)
-            throws IOException, NoSuchDataItemException {
+    public byte[] fetchDataSubset(String containerID, String dataID, int offset, int length)
+            throws IOException, NoSuchDataItemException, NoSuchContainerException {
+
+        if (!hasData(containerID, dataID)) {
+            throw new NoSuchDataItemException("The requested Data Item does not exist in the specified container");
+        }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -195,15 +224,31 @@ public class DataStorageManager {
      * Removes the data item with the specified dataID and containerID.  Returns true if a matching data item was found
      * and removed.  Returns false if no matching data item was found.
      *
+     *
+     * @param containerID
      * @param dataID      The ID of the data item that is being removed.
      * @return True if the specified data item was removed from storage.  False if the specified data item was not
      * removed from storage.
      *
      * @throws IOException If there is an exception removing the data item.
      */
-    public boolean removeData(String dataID)
+    public boolean removeData(String containerID, String dataID)
             throws IOException {
-        return _dataStorageProvider.removeData(dataID);
+        boolean removed = false ;
+
+        try {
+            removed = _dataModel.removeDataItemFromContainer(dataID, containerID);
+
+            // See if any other containers are using the specified data item
+            if ( !_dataModel.isDataItemInAnyContainer(dataID) ) {
+                _dataStorageProvider.removeData(dataID);
+                _dataModel.removeDataItem(dataID);
+            }
+        } catch ( NoSuchContainerException e ) {
+            return false ;
+        }
+
+        return removed;
     }
 
     /**
@@ -212,18 +257,27 @@ public class DataStorageManager {
      * corrupted.  If the data is corrupted, the method will return false, and the data will be purged from internal
      * storage.
      *
+     * @param containerID
      * @param dataID      The ID of the data item whose existence is being queried.
      * @return True, if the data item exists in the specified container.  False, if it does not exist in the specified
      * container.
      *
      * @throws IOException If there is an exception checking the existence of the specified data item.
      */
-    public boolean hasData(String dataID)
-            throws IOException {
+    public boolean hasData(String containerID, String dataID)
+            throws IOException, NoSuchContainerException {
+        ContainerInfo containerInfo = _dataModel.getContainer(containerID) ;
+        if ( containerInfo == null ) {
+            throw new NoSuchContainerException("The specified container does not exist");
+        }
         return _dataStorageProvider.hasData(dataID);
     }
 
     public void setDataStorageProvider(DataStorageProvider dataStorageProvider) {
         _dataStorageProvider = dataStorageProvider;
+    }
+
+    public void setDataModel(DataModel dataModel) {
+        _dataModel = dataModel;
     }
 }
