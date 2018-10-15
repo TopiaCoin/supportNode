@@ -5,6 +5,8 @@ import io.topiacoin.node.exceptions.BadRequestException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.CorruptDataItemException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
+import io.topiacoin.node.exceptions.FailedToCreateContainer;
+import io.topiacoin.node.exceptions.FailedToRemoveContainer;
 import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.InvalidChallengeException;
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
@@ -80,7 +82,7 @@ public class APIController {
     @RequestMapping(value = "/container", method = RequestMethod.POST)
     public ResponseEntity<Void> createContainer(
             @RequestBody ContainerCreationRequest creationRequest)
-            throws ContainerAlreadyExistsException {
+            throws ContainerAlreadyExistsException, FailedToCreateContainer {
 
         if (creationRequest == null) {
             throw new BadRequestException("Invalid Body.");
@@ -104,7 +106,7 @@ public class APIController {
     @RequestMapping(value = "/container", method = RequestMethod.PUT)
     public ResponseEntity<Void> replicateContainer(
             @RequestBody ContainerReplicationRequest replicationRequest)
-            throws ContainerAlreadyExistsException, NoSuchNodeException, NoSuchContainerException {
+            throws ContainerAlreadyExistsException, NoSuchNodeException, NoSuchContainerException, FailedToCreateContainer {
 
         if (replicationRequest == null) {
             throw new BadRequestException("Invalid Body.");
@@ -119,11 +121,7 @@ public class APIController {
             throw new BadRequestException("Peer Node ID not specified.");
         }
 
-        try {
-            _businessLogic.replicateContainer(replicationRequest.getContainerID(), replicationRequest.getPeerNodeID());
-        } catch (MicroNetworkAlreadyExistsException e) {
-            throw new ContainerAlreadyExistsException(e);
-        }
+        _businessLogic.replicateContainer(replicationRequest.getContainerID(), replicationRequest.getPeerNodeID());
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -131,7 +129,7 @@ public class APIController {
     @RequestMapping(value = "/container", method = RequestMethod.DELETE)
     public ResponseEntity<Void> removeContainer(
             @RequestParam String containerID)
-            throws NoSuchContainerException {
+            throws NoSuchContainerException, FailedToRemoveContainer {
 
         _log.info("Remove Container: " + containerID);
 

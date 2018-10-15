@@ -3,11 +3,11 @@ package io.topiacoin.node;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.CorruptDataItemException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
+import io.topiacoin.node.exceptions.FailedToCreateContainer;
 import io.topiacoin.node.exceptions.InvalidChallengeException;
-import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
-import io.topiacoin.node.micronetwork.MicroNetworkManager;
+import io.topiacoin.node.micronetwork.ContainerManager;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ChallengeChunkInfo;
 import io.topiacoin.node.model.ChallengeSolution;
@@ -16,7 +16,6 @@ import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataItemInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
 import io.topiacoin.node.model.MicroNetworkState;
-import io.topiacoin.node.model.NodeConnectionInfo;
 import io.topiacoin.node.proof.ProofSolver;
 import io.topiacoin.node.smsc.SMSCManager;
 import io.topiacoin.node.storage.DataStorageManager;
@@ -44,7 +43,7 @@ public class BusinessLogicTest {
 
     //    private DataModel _dataModel;
     private DataStorageManager _dataStorageManager;
-    private MicroNetworkManager _microNetworkManager;
+    private ContainerManager _containerManager;
     private ProofSolver _proofSolver;
     private SMSCManager _smscManager;
 
@@ -53,7 +52,7 @@ public class BusinessLogicTest {
         // Create the Mock Objects that will be wired into the Test Object
 //        _dataModel = EasyMock.createMock(DataModel.class);
         _dataStorageManager = EasyMock.createMock(DataStorageManager.class);
-        _microNetworkManager = EasyMock.createMock(MicroNetworkManager.class);
+        _containerManager = EasyMock.createMock(ContainerManager.class);
         _proofSolver = EasyMock.createMock(ProofSolver.class);
         _smscManager = EasyMock.createMock(SMSCManager.class);
     }
@@ -62,7 +61,7 @@ public class BusinessLogicTest {
     public void tearDown() {
 //        _dataModel = null;
         _dataStorageManager = null;
-        _microNetworkManager = null;
+        _containerManager = null;
         _proofSolver = null;
         _smscManager = null;
     }
@@ -79,14 +78,12 @@ public class BusinessLogicTest {
         String rpcURL = "http://localhost:1234";
         String p2pURL = "http:localhost:5678/";
         ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/dev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.getContainerConnectionInfo(containerID)).andReturn(containerConnectionInfo);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -102,7 +99,7 @@ public class BusinessLogicTest {
             assertEquals(p2pURL, fetchedContainerConnectionInfo.getP2PURL());
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -115,10 +112,11 @@ public class BusinessLogicTest {
         String containerID = UUID.randomUUID().toString();
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        // -- None --
+        EasyMock.expect(_containerManager.getContainerConnectionInfo(containerID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -136,7 +134,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -150,11 +148,10 @@ public class BusinessLogicTest {
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.getContainerConnectionInfo(containerID)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -172,7 +169,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -185,32 +182,35 @@ public class BusinessLogicTest {
 
         // Test Data
         String containerID = UUID.randomUUID().toString();
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        String containerState = "STOPPED";
+
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(containerConnectionInfo);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
-        _microNetworkManager.createBlockchain(containerID);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expectLastCall();
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+        EasyMock.expect(_containerManager.createContainer(containerID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
 
         try {
             // Execute the Test
-            ContainerInfo fetchedContainer = bl.createContainer(containerID);
+            ContainerConnectionInfo fetchedContainer = bl.createContainer(containerID);
 
             // Verify the expected Results of the Test
             assertNotNull(fetchedContainer);
-            assertEquals(containerID, fetchedContainer.getId());
+            assertEquals(containerID, fetchedContainer.getContainerID());
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -221,36 +221,40 @@ public class BusinessLogicTest {
 
         // Test Data
         String containerID = UUID.randomUUID().toString();
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
         Future<ContainerInfo> containerInfoFuture = (Future<ContainerInfo>) new CompletedFuture<>(containerInfo);
 
+        String containerState = "STOPPED";
+
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(containerConnectionInfo);
+
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
         EasyMock.expect(_smscManager.getContainerInfo(containerID)).andReturn(containerInfoFuture);
-//        EasyMock.expect(_dataModel.createContainer(containerID, 0, null)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
-        _microNetworkManager.createBlockchain(containerID);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expectLastCall();
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+        EasyMock.expect(_containerManager.createContainer(containerID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
 
         try {
             // Execute the Test
-            ContainerInfo fetchedContainer = bl.createContainer(containerID);
+            ContainerConnectionInfo fetchedContainer = bl.createContainer(containerID);
 
             // Verify the expected Results of the Test
             assertNotNull(fetchedContainer);
-            assertEquals(containerID, fetchedContainer.getId());
+            assertEquals(containerID, fetchedContainer.getContainerID());
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -261,17 +265,26 @@ public class BusinessLogicTest {
 
         // Test Data
         String containerID = UUID.randomUUID().toString();
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
 
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
         Future<ContainerInfo> containerInfoFuture = new CompletedFuture<>(null);
 
+        String containerState = "STOPPED";
+
+//        String rpcURL = "http://localhost:1234";
+//        String p2pURL = "http:localhost:5678/";
+//        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(null);
+
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
         EasyMock.expect(_smscManager.getContainerInfo(containerID)).andReturn(containerInfoFuture);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_containerManager.createContainer(containerID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -289,7 +302,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -300,16 +313,17 @@ public class BusinessLogicTest {
 
         // Test Data
         String containerID = UUID.randomUUID().toString();
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+
+        String containerState = "RUNNING";
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(null);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -317,7 +331,7 @@ public class BusinessLogicTest {
         try {
             // Execute the Test
             try {
-                ContainerInfo fetchedContainer = bl.createContainer(containerID);
+                bl.createContainer(containerID);
                 fail("Expected ContainerAlreadyExistsException was not thrown");
             } catch (ContainerAlreadyExistsException e) {
                 // NOOP - Expected Exception
@@ -327,7 +341,52 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
+        } finally {
+            bl.shutdown();
+        }
+    }
+
+    @Test
+    public void testCreateContainerFailsToCreateContainer() throws Exception {
+
+        // Test Data
+        String containerID = UUID.randomUUID().toString();
+
+        String containerState = "STOPPED";
+
+//        String rpcURL = "http://localhost:1234";
+//        String p2pURL = "http:localhost:5678/";
+//        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        CompletedFuture<ContainerConnectionInfo> createFuture = new CompletedFuture<>(null);
+        createFuture.setException(new Exception("Creation failed", null));
+
+        // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+        EasyMock.expect(_containerManager.createContainer(containerID)).andReturn(createFuture);
+
+        // Switch the Mock Objects into Test Mode
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
+
+        // Create and Configure the Test Object
+        BusinessLogic bl = getConfiguredBusinessLogic();
+
+        try {
+            // Execute the Test
+            try {
+                ContainerConnectionInfo fetchedContainer = bl.createContainer(containerID);
+                fail("Expected ContainerAlreadyExistsException was not thrown");
+            } catch (FailedToCreateContainer e) {
+                // NOOP - Expected Exception
+            }
+
+            // Verify the expected Results of the Test
+            // -- None --
+
+            // Verify the Mock Objects have been called correctly.
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -341,40 +400,35 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String peerNodeID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        String containerState = "STOPPED";
 
-        List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
-        nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
-        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList);
-        Future<Void> syncFuture = new CompletedFuture<>(null);
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(containerConnectionInfo);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
-        EasyMock.expect(_smscManager.getNodesForContainer(containerID)).andReturn(nodesFuture);
-        EasyMock.expect(_microNetworkManager.syncBlockchain(p2pURL, containerID)).andReturn(syncFuture);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+        EasyMock.expect(_containerManager.replicateContainer(containerID, peerNodeID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
 
         try {
             // Execute the Test
-            ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
+            ContainerConnectionInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
 
             // Verify the expected Results of the Test
             assertNotNull(fetchedContainer);
-            assertEquals(containerID, fetchedContainer.getId());
+            assertEquals(containerID, fetchedContainer.getContainerID());
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -386,44 +440,39 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String peerNodeID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
+        String containerState = "STOPPED";
+
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        Future<ContainerInfo> containerInfoFuture = (Future<ContainerInfo>) new CompletedFuture<>(containerInfo);
 
-        Future<ContainerInfo> containerInfoFuture = new CompletedFuture<>(containerInfo);
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
-        List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
-        nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
-
-        Future<List<NodeConnectionInfo>> nodesFuture = new CompletedFuture<>(nodesConnectionList);
-        Future<Void> syncFuture = new CompletedFuture<>(null);
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(containerConnectionInfo);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
         EasyMock.expect(_smscManager.getContainerInfo(containerID)).andReturn(containerInfoFuture);
-//        EasyMock.expect(_dataModel.createContainer(containerID, 0, null)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
-        EasyMock.expect(_smscManager.getNodesForContainer(containerID)).andReturn(nodesFuture);
-        EasyMock.expect(_microNetworkManager.syncBlockchain(p2pURL, containerID)).andReturn(syncFuture);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+        EasyMock.expect(_containerManager.replicateContainer(containerID, peerNodeID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
 
         try {
             // Execute the Test
-            ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
+            ContainerConnectionInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
 
             // Verify the expected Results of the Test
             assertNotNull(fetchedContainer);
-            assertEquals(containerID, fetchedContainer.getId());
+            assertEquals(containerID, fetchedContainer.getContainerID());
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -435,15 +484,25 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String peerNodeID = UUID.randomUUID().toString();
+        String containerState = "STOPPED";
 
-        Future<ContainerInfo> containerInfoFuture = new CompletedFuture<>(null);
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        Future<ContainerInfo> containerInfoFuture =  new CompletedFuture<>(null);
+
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(null);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
         EasyMock.expect(_smscManager.getContainerInfo(containerID)).andReturn(containerInfoFuture);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_containerManager.replicateContainer(containerID, peerNodeID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -451,7 +510,7 @@ public class BusinessLogicTest {
         try {
             // Execute the Test
             try {
-                ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
+                bl.replicateContainer(containerID, peerNodeID);
                 fail("Expected NoSuchContainerException was not thrown");
             } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
@@ -461,7 +520,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -473,20 +532,25 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String peerNodeID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
+        String containerState = "RUNNING";
 
-        List<NodeConnectionInfo> nodesConnectionList = new ArrayList<>();
-        nodesConnectionList.add(new NodeConnectionInfo(containerID, peerNodeID, rpcURL, p2pURL));
+        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
+        Future<ContainerInfo> containerInfoFuture = (Future<ContainerInfo>) new CompletedFuture<>(containerInfo);
+
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
+
+        Future<ContainerConnectionInfo> createFuture = new CompletedFuture<>(containerConnectionInfo);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+//        EasyMock.expect(_smscManager.getContainerInfo(containerID)).andReturn(containerInfoFuture);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_containerManager.replicateContainer(containerID, peerNodeID)).andReturn(createFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -494,9 +558,9 @@ public class BusinessLogicTest {
         try {
             // Execute the Test
             try {
-                ContainerInfo fetchedContainer = bl.replicateContainer(containerID, peerNodeID);
+                bl.replicateContainer(containerID, peerNodeID);
                 fail("Expeted MicroNetworkAlreadyExistsException was not thrown");
-            } catch (MicroNetworkAlreadyExistsException e) {
+            } catch (ContainerAlreadyExistsException e) {
                 // NOOP - Expected Exception
             }
 
@@ -504,7 +568,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -517,20 +581,15 @@ public class BusinessLogicTest {
 
         // Test Data
         String containerID = UUID.randomUUID().toString();
-        String netID = UUID.randomUUID().toString();
-        ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
-        String rpcURL = "http://localhost:1234";
-        String p2pURL = "http:localhost:5678/";
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(netID, containerID, "/dev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+
+        Future<Void> removeFuture = new CompletedFuture<>(null);
 
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
-        _microNetworkManager.destroyBlockchain(netID);
-        EasyMock.expectLastCall();
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.removeContainer(containerID)).andReturn(removeFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -543,7 +602,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -555,11 +614,14 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
 
+        Future<Void> removeFuture = new CompletedFuture<>(null);
+
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(null);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
+//        EasyMock.expect(_containerManager.removeContainer(containerID)).andReturn(removeFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -577,7 +639,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -591,26 +653,23 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        String containerState = "RUNNING";
+
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
-
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
         EasyMock.expect(_dataStorageManager.saveData(containerID, chunkID, dataHash, dataStream)).andReturn((long) data.length);
-//        EasyMock.expect(_dataModel.createDataItem(chunkID, data.length, dataHash)).andReturn(dataItemInfo);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -623,7 +682,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -635,26 +694,23 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        String containerState = "RUNNING";
+
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
-
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(null);
-//        EasyMock.expect(_dataStorageManager.hasData(chunkID, containerID)).andReturn(false);
-//        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andReturn((long) data.length);
-//        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
+//        EasyMock.expect(_dataStorageManager.saveData(containerID, chunkID, dataHash, dataStream)).andReturn((long) data.length);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -672,7 +728,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -684,26 +740,23 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        String containerState = "RUNNING";
+
         byte[] data = new byte[1024];
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
-
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(true);
-//        EasyMock.expect(_dataStorageManager.saveData(chunkID, containerID, dataHash, dataStream)).andReturn((long) data.length);
-//        EasyMock.expect(_dataModel.createDataItem(chunkID, containerID, data.length, dataHash)).andReturn(dataItemInfo) ;
+//        EasyMock.expect(_dataStorageManager.saveData(containerID, chunkID, dataHash, dataStream)).andReturn((long) data.length);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -721,7 +774,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -733,25 +786,23 @@ public class BusinessLogicTest {
         // Test Data
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
-        String rpcURL = "http://localhost:1234/";
-        String p2pURL = "http://localhost:9876/";
 
-        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(containerID, containerID, "/gev/null", MicroNetworkState.STARTING, rpcURL, p2pURL);
+        String containerState = "RUNNING";
+
         byte[] data = new byte[1024];
-        String dataHash = HashUtilities.generateHash("SHA-256", data); // This has will not match the data!!
         new Random().nextBytes(data);
+        String dataHash = HashUtilities.generateHash("SHA-256", data);
 
         ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
 
-        DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
-
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_microNetworkManager.getBlockchainInfo(containerID)).andReturn(microNetworkInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
         EasyMock.expect(_dataStorageManager.saveData(containerID, chunkID, dataHash, dataStream)).andThrow(new CorruptDataItemException("Data Item is Corrupt"));
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -769,7 +820,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -789,11 +840,15 @@ public class BusinessLogicTest {
 
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(true);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -806,7 +861,7 @@ public class BusinessLogicTest {
             assertTrue(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -824,11 +879,15 @@ public class BusinessLogicTest {
 
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -841,7 +900,7 @@ public class BusinessLogicTest {
             assertFalse(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -854,11 +913,15 @@ public class BusinessLogicTest {
         String containerID = UUID.randomUUID().toString();
         String chunkID = UUID.randomUUID().toString();
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -871,7 +934,7 @@ public class BusinessLogicTest {
             assertFalse(hasChunk);
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -890,24 +953,33 @@ public class BusinessLogicTest {
 
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
 
         try {
             // Execute the Test
-            boolean hasChunk = bl.hasChunk(containerID, chunkID);
+            try {
+                boolean hasChunk = bl.hasChunk(containerID, chunkID);
+                fail ( "Expected NoSuchContainerException was not thrown");
+            } catch ( NoSuchContainerException e ){
+                // NOOP - Expected Exception
+            }
 
             // Verify the expected Results of the Test
-            assertFalse(hasChunk);
+            // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -925,6 +997,8 @@ public class BusinessLogicTest {
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
+        String containerState = "RUNNING";
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         ContainerInfo containerInfo = new ContainerInfo(containerID, 0);
@@ -932,6 +1006,8 @@ public class BusinessLogicTest {
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(true);
         _dataStorageManager.fetchData(containerID, chunkID, outputStream);
         EasyMock.expectLastCall().andAnswer(() -> {
@@ -940,7 +1016,7 @@ public class BusinessLogicTest {
         });
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -954,7 +1030,7 @@ public class BusinessLogicTest {
             assertTrue(Arrays.equals(data, retrievedData));
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -972,11 +1048,15 @@ public class BusinessLogicTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -994,7 +1074,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1011,17 +1091,21 @@ public class BusinessLogicTest {
         new Random().nextBytes(data);
         String dataHash = HashUtilities.generateHash("SHA-256", data);
 
+        String containerState = "RUNNING";
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andThrow(new NoSuchContainerException());
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andThrow(new NoSuchContainerException());
 //        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
 //        EasyMock.expect(_dataModel.isDataItemInContainer(chunkID, containerID)).andThrow(new NoSuchContainerException(""));
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1039,7 +1123,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1055,17 +1139,21 @@ public class BusinessLogicTest {
         String dataHash = HashUtilities.generateHash("SHA-256", data); // This hash is wrong
         new Random().nextBytes(data);
 
+        String containerState="RUNNING";
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.hasData(containerID, chunkID)).andReturn(true);
         _dataStorageManager.fetchData(containerID, chunkID, outputStream);
         EasyMock.expectLastCall().andThrow(new CorruptDataItemException("Data Item Is Corrupt"));
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1083,7 +1171,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1107,11 +1195,15 @@ public class BusinessLogicTest {
         MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.removeData(containerID, chunkID)).andReturn(true);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1124,7 +1216,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1146,11 +1238,15 @@ public class BusinessLogicTest {
         MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_dataStorageManager.removeData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1168,7 +1264,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1190,13 +1286,15 @@ public class BusinessLogicTest {
         MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo("foo", containerID, "/dev/null", MicroNetworkState.STARTING, "http://localhost:1234/", "http://localhost:8765/");
         DataItemInfo dataItemInfo = new DataItemInfo(chunkID, data.length, dataHash);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
-        EasyMock.expect(_dataStorageManager.removeData(containerID, chunkID)).andReturn(false);
-//        EasyMock.expect(_dataModel.getDataItem(chunkID)).andReturn(dataItemInfo);
-//        EasyMock.expect(_dataModel.isDataItemInContainer(chunkID, containerID)).andThrow(new NoSuchContainerException());
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(false);
+//        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
+//        EasyMock.expect(_dataStorageManager.removeData(containerID, chunkID)).andReturn(false);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1205,8 +1303,8 @@ public class BusinessLogicTest {
             // Execute the Test
             try {
                 bl.removeChunk(containerID, chunkID);
-                fail("Expected NoSuchDataItemException was not thrown");
-            } catch (NoSuchDataItemException e) {
+                fail("Expected NoSuchContainerException was not thrown");
+            } catch (NoSuchContainerException e) {
                 // NOOP - Expected Exception
             }
 
@@ -1214,7 +1312,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1248,15 +1346,16 @@ public class BusinessLogicTest {
 
         Future<Void> submitFuture = new CompletedFuture<>(null);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_proofSolver.generateSolution(challenege)).andReturn(solution);
-//        _dataModel.updateContainer(containerInfo);
-//        EasyMock.expectLastCall();
         EasyMock.expect(_smscManager.submitProofSolution(containerID, solution)).andReturn(submitFuture);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1269,7 +1368,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1300,12 +1399,15 @@ public class BusinessLogicTest {
 
         Future<Void> submitFuture = new CompletedFuture<>(null);
 
+        String containerState = "RUNNING";
+
         // Configure the Mock Objects with Expected Behavior
-//        EasyMock.expect(_dataModel.getContainer(containerID)).andReturn(containerInfo);
+        EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
+        EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(containerState);
         EasyMock.expect(_proofSolver.generateSolution(challenege)).andReturn(null);
 
         // Switch the Mock Objects into Test Mode
-        EasyMock.replay(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+        EasyMock.replay(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
 
         // Create and Configure the Test Object
         BusinessLogic bl = getConfiguredBusinessLogic();
@@ -1323,7 +1425,7 @@ public class BusinessLogicTest {
             // -- None --
 
             // Verify the Mock Objects have been called correctly.
-            EasyMock.verify(_dataStorageManager, _microNetworkManager, _proofSolver, _smscManager);
+            EasyMock.verify(_dataStorageManager, _containerManager, _proofSolver, _smscManager);
         } finally {
             bl.shutdown();
         }
@@ -1335,7 +1437,7 @@ public class BusinessLogicTest {
         BusinessLogic bl = new BusinessLogic();
 //        bl.setDataModel(_dataModel);
         bl.setDataStorageManager(_dataStorageManager);
-        bl.setMicroNetworkManager(_microNetworkManager);
+        bl.setContainerManager(_containerManager);
         bl.setProofSolver(_proofSolver);
         bl.setSmscManager(_smscManager);
 
@@ -1347,6 +1449,8 @@ public class BusinessLogicTest {
 
     private static class CompletedFuture<T> implements Future<T> {
         private T result;
+        private Throwable throwable;
+        private boolean interrupted;
 
         public CompletedFuture(T result) {
             this.result = result;
@@ -1369,12 +1473,26 @@ public class BusinessLogicTest {
 
         @Override
         public T get() throws InterruptedException, ExecutionException {
+            if ( this.throwable != null) {
+                throw new ExecutionException(this.throwable);
+            }
+            if ( this.interrupted ) {
+                throw new InterruptedException();
+            }
             return result;
         }
 
         @Override
         public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
             return result;
+        }
+
+        public void setException ( Throwable t ) {
+            this.throwable = t;
+        }
+
+        public void setInterrupted(boolean interrupted) {
+            this.interrupted = interrupted;
         }
     }
 }

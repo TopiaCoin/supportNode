@@ -182,15 +182,17 @@ public class APIControllerTest {
     public void testCreateContainer() throws Exception {
 
         String containerID = UUID.randomUUID().toString();
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
 
         ContainerCreationRequest request = new ContainerCreationRequest(containerID);
-        ContainerInfo info = new ContainerInfo(containerID, 0, null);
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
         // Create the Mock Objects
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.createContainer(containerID)).andReturn(info);
+        EasyMock.expect(businessLogic.createContainer(containerID)).andReturn(containerConnectionInfo);
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
@@ -396,8 +398,14 @@ public class APIControllerTest {
     @Test
     public void testReplicateContainer() throws Exception {
 
+        // Setup Expectations
         String containerID = UUID.randomUUID().toString();
         String peerID = UUID.randomUUID().toString();
+
+        String rpcURL = "http://localhost:1234";
+        String p2pURL = "http:localhost:5678/";
+
+        ContainerConnectionInfo containerConnectionInfo = new ContainerConnectionInfo(containerID, rpcURL, p2pURL);
 
         ContainerReplicationRequest request = new ContainerReplicationRequest(containerID, peerID);
         ContainerInfo info = new ContainerInfo(containerID, 0, null);
@@ -406,7 +414,7 @@ public class APIControllerTest {
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andReturn(info);
+        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andReturn(containerConnectionInfo);
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
@@ -439,7 +447,7 @@ public class APIControllerTest {
         BusinessLogic businessLogic = EasyMock.createMock(BusinessLogic.class);
 
         // Setup Expectations
-        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new MicroNetworkAlreadyExistsException());
+        EasyMock.expect(businessLogic.replicateContainer(containerID, peerID)).andThrow(new ContainerAlreadyExistsException());
 
         // Replay Mock Objects
         EasyMock.replay(businessLogic);
