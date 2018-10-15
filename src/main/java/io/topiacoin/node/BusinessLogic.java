@@ -32,6 +32,8 @@ import java.io.OutputStream;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static io.topiacoin.node.micronetwork.ContainerManager.ContainerState.*;
+
 @Component
 public class BusinessLogic {
 
@@ -107,8 +109,8 @@ public class BusinessLogic {
             }
         }
 
-        String containerState = _containerManager.getContainerState(containerID);
-        if (containerState.equals("RUNNING")) {
+        ContainerManager.ContainerState containerState = _containerManager.getContainerState(containerID);
+        if (containerState == RUNNING) {
             throw new ContainerAlreadyExistsException("The specified container is already running");
         }
 
@@ -148,8 +150,8 @@ public class BusinessLogic {
             }
         }
 
-        String containerState = _containerManager.getContainerState(containerID);
-        if (containerState.equals("RUNNING")) {
+        ContainerManager.ContainerState containerState = _containerManager.getContainerState(containerID);
+        if (containerState == RUNNING) {
             throw new ContainerAlreadyExistsException("The specified container is already running");
         }
 
@@ -194,7 +196,7 @@ public class BusinessLogic {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 
-        if (!_containerManager.getContainerState(containerID).equals("RUNNING")) {
+        if (_containerManager.getContainerState(containerID) != RUNNING) {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 
@@ -217,7 +219,7 @@ public class BusinessLogic {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 
-        if (!_containerManager.getContainerState(containerID).equals("RUNNING")) {
+        if (_containerManager.getContainerState(containerID) != RUNNING) {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 
@@ -242,7 +244,7 @@ public class BusinessLogic {
                 throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
             }
 
-            if (!_containerManager.getContainerState(containerID).equals("RUNNING")) {
+            if (_containerManager.getContainerState(containerID) != RUNNING) {
                 throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
             }
 
@@ -266,7 +268,7 @@ public class BusinessLogic {
                 throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
             }
 
-            if (!_containerManager.getContainerState(containerID).equals("RUNNING")) {
+            if (_containerManager.getContainerState(containerID) != RUNNING) {
                 throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
             }
 
@@ -288,7 +290,7 @@ public class BusinessLogic {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 
-        if (!_containerManager.getContainerState(containerID).equals("RUNNING")) {
+        if (_containerManager.getContainerState(containerID) != RUNNING) {
             throw new NoSuchContainerException("This node is not hosting the specified container(" + containerID + ")");
         }
 

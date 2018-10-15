@@ -4,6 +4,7 @@ import io.topiacoin.node.exceptions.BlockchainAlreadyExistsException;
 import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
+import io.topiacoin.node.exceptions.NoSuchNodeException;
 import io.topiacoin.node.model.BlockchainInfo;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
@@ -14,6 +15,7 @@ import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.DataItemAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
+import io.topiacoin.node.model.NodeConnectionInfo;
 
 import java.util.List;
 
@@ -79,4 +81,12 @@ public interface DataModelProvider {
     BlockchainInfo getBlockchain(String blockchainID);
 
     boolean removeBlockchain(String blockchainID);
+
+    NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL);
+
+    NodeConnectionInfo getNodeConnectionInfo(String containerID, String nodeID);
+
+    void updateNodeConnectionInfo(NodeConnectionInfo info) throws NoSuchNodeException;
+
+    boolean removeNodeConnectionInfo(String containerID, String nodeID);
 }

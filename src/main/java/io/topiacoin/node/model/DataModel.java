@@ -8,6 +8,7 @@ import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
+import io.topiacoin.node.exceptions.NoSuchNodeException;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -145,6 +146,23 @@ public class DataModel {
 
     public boolean removeBlockchain(String id) {
         return _provider.removeBlockchain(id);
+    }
+
+    public NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL) {
+        return _provider.createNodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+    }
+
+    public NodeConnectionInfo getNodeConnectionInfo(String containerID, String nodeID) {
+        return _provider.getNodeConnectionInfo(containerID, nodeID);
+    }
+
+    public void updateNodeConnectionInfo(NodeConnectionInfo info)
+            throws NoSuchNodeException {
+        _provider.updateNodeConnectionInfo(info);
+    }
+
+    public boolean removeNodeConnectionInfo(String containerID, String nodeID) {
+        return _provider.removeNodeConnectionInfo(containerID, nodeID);
     }
 
     // -------- Accessor Methods --------

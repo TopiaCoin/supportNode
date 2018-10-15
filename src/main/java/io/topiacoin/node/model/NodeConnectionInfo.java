@@ -19,6 +19,13 @@ public class NodeConnectionInfo {
         this.p2pURL = p2pURL;
     }
 
+    public NodeConnectionInfo(NodeConnectionInfo info) {
+        this.containerID = info.containerID;
+        this.nodeID = info.nodeID;
+        this.rpcURL = info.rpcURL;
+        this.p2pURL = info.p2pURL;
+    }
+
     public String getContainerID() {
         return containerID;
     }
