@@ -1185,6 +1185,8 @@ public class BusinessLogicTest {
         EasyMock.expect(_containerManager.hasContainer(containerID)).andReturn(true);
         EasyMock.expect(_containerManager.getContainerState(containerID)).andReturn(RUNNING);
         EasyMock.expect(_proofSolver.generateSolution(challenge)).andReturn(solution);
+        _containerManager.saveChallenge(challenge);
+        EasyMock.expectLastCall();
         EasyMock.expect(_smscManager.submitProofSolution(containerID, solution)).andReturn(submitFuture);
 
         // Switch the Mock Objects into Test Mode
