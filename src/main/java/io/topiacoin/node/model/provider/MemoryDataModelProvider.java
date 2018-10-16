@@ -5,6 +5,7 @@ import io.topiacoin.node.exceptions.MicroNetworkAlreadyExistsException;
 import io.topiacoin.node.exceptions.NoSuchBlockchainException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.exceptions.NoSuchNodeException;
+import io.topiacoin.node.exceptions.NodeConnectionInfoAlreadyExistsException;
 import io.topiacoin.node.model.BlockchainInfo;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
@@ -299,10 +300,18 @@ public class MemoryDataModelProvider implements DataModelProvider {
 
     @Override
     public NodeConnectionInfo createNodeConnectionInfo(
-            String containerID, String nodeID, String rpcURL, String p2pURL) {
+            String containerID, String nodeID, String rpcURL, String p2pURL)
+            throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
+
+        String key = containerID + ":" + nodeID;
+        if ( _nodeConnectionInfoMap.containsKey(key)) {
+            throw new NodeConnectionInfoAlreadyExistsException("The node connection info or the specified container/node already exists");
+        }
+        if ( !_containerMap.containsKey(containerID)) {
+            throw new NoSuchContainerException("The specified container does not exist");
+        }
 
         NodeConnectionInfo info = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
-        String key = containerID + ":" + nodeID;
 
         _nodeConnectionInfoMap.put(key, info) ;
 

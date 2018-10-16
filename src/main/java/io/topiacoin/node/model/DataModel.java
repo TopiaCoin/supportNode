@@ -9,6 +9,7 @@ import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.exceptions.NoSuchNodeException;
+import io.topiacoin.node.exceptions.NodeConnectionInfoAlreadyExistsException;
 import io.topiacoin.node.model.provider.DataModelProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -148,7 +149,8 @@ public class DataModel {
         return _provider.removeBlockchain(id);
     }
 
-    public NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL) {
+    public NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL)
+            throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
         return _provider.createNodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
     }
 

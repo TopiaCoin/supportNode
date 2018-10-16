@@ -14,6 +14,7 @@ import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchDataItemException;
 import io.topiacoin.node.exceptions.NoSuchMicroNetworkException;
 import io.topiacoin.node.exceptions.NoSuchNodeException;
+import io.topiacoin.node.exceptions.NodeConnectionInfoAlreadyExistsException;
 import io.topiacoin.node.model.BlockchainInfo;
 import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerInfo;
@@ -124,6 +125,16 @@ public class SQLiteDataModelProvider implements DataModelProvider {
                 "p2pURL         TEXT );";
         PreparedStatement microNetworkInfoPS = c.prepareStatement(microNetworkCreateSQL);
         microNetworkInfoPS.execute();
+
+        // NodeConnection Table
+        String nodeConnectionCreateSQL = "CREATE TABLE IF NOT EXISTS NodeConnections (" +
+                "containerID    TEXT                NOT NULL, " +
+                "nodeID         TEXT                NOT NULL, " +
+                "rpcURL         TEXT, " +
+                "p2pURL         TEXT," +
+                "PRIMARY KEY (containerID, nodeID) );";
+        PreparedStatement nodeConnectionPS = c.prepareStatement(nodeConnectionCreateSQL);
+        nodeConnectionPS.execute();
     }
 
     @Override
@@ -257,10 +268,10 @@ public class SQLiteDataModelProvider implements DataModelProvider {
         ContainerInfo containerInfo = null;
 
         try (Connection c = getConnection()) {
-            if ( getContainer(containerID) == null ){
+            if (getContainer(containerID) == null) {
                 throw new NoSuchContainerException("The specified container does not exist");
             }
-            if ( getDataItem(dataItemID) == null ){
+            if (getDataItem(dataItemID) == null) {
                 throw new NoSuchDataItemException("The specified data item does not exist");
             }
 
@@ -291,7 +302,7 @@ public class SQLiteDataModelProvider implements DataModelProvider {
         ContainerInfo containerInfo = null;
 
         try (Connection c = getConnection()) {
-            if ( getContainer(containerID) == null ){
+            if (getContainer(containerID) == null) {
                 throw new NoSuchContainerException("The specified container does not exist");
             }
 
@@ -316,7 +327,7 @@ public class SQLiteDataModelProvider implements DataModelProvider {
         ContainerInfo containerInfo = null;
 
         try (Connection c = getConnection()) {
-            if ( getContainer(containerID) == null ){
+            if (getContainer(containerID) == null) {
                 throw new NoSuchContainerException("The specified container does not exist");
             }
 
@@ -349,7 +360,7 @@ public class SQLiteDataModelProvider implements DataModelProvider {
             ps.setString(1, dataItemID);
 
             ResultSet rs = ps.executeQuery();
-            boolean found = false ;
+            boolean found = false;
             if (rs.next()) {
                 found = rs.getLong(1) > 0;
             }
@@ -414,9 +425,9 @@ public class SQLiteDataModelProvider implements DataModelProvider {
             ps.setString(2, dataHash);
             ps.setString(3, dataItemID);
 
-            int rowsAffected = ps.executeUpdate() ;
-            if ( rowsAffected == 0 ) {
-                throw new NoSuchDataItemException("The specified Data Item does not exist") ;
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new NoSuchDataItemException("The specified Data Item does not exist");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Exception while using SQLite", e);
@@ -436,10 +447,10 @@ public class SQLiteDataModelProvider implements DataModelProvider {
             ps.setString(1, dataItemID);
 
             ResultSet rs = ps.executeQuery();
-            if ( rs.next() ) {
-                long size = rs.getLong(1) ;
+            if (rs.next()) {
+                long size = rs.getLong(1);
                 String dataHash = rs.getString(2);
-            dataItemInfo = new DataItemInfo(dataItemID, size, dataHash);
+                dataItemInfo = new DataItemInfo(dataItemID, size, dataHash);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Exception while using SQLite", e);
@@ -456,7 +467,7 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
         try (Connection c = getConnection()) {
 
-            if ( getContainer(containerID) == null ){
+            if (getContainer(containerID) == null) {
                 throw new NoSuchContainerException("The specified container does not exist");
             }
 
@@ -466,9 +477,9 @@ public class SQLiteDataModelProvider implements DataModelProvider {
             ps.setString(1, containerID);
 
             ResultSet rs = ps.executeQuery();
-            while ( rs.next() ) {
+            while (rs.next()) {
                 String dataItemID = rs.getString(1);
-                long size = rs.getLong(2) ;
+                long size = rs.getLong(2);
                 String dataHash = rs.getString(3);
                 DataItemInfo dataItemInfo = new DataItemInfo(dataItemID, size, dataHash);
                 dataItemInfos.add(dataItemInfo);
@@ -492,8 +503,8 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
             ps.setString(1, dataItemID);
 
-            int rowsAffected = ps.executeUpdate() ;
-            return ( rowsAffected > 0 );
+            int rowsAffected = ps.executeUpdate();
+            return (rowsAffected > 0);
         } catch (SQLException e) {
             throw new RuntimeException("Exception while using SQLite", e);
         }
@@ -507,11 +518,11 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
         try (Connection c = getConnection()) {
 
-            if ( getContainer(containerID) == null ){
+            if (getContainer(containerID) == null) {
                 throw new NoSuchContainerException("The specified container does not exist");
             }
 
-            String removeSQL = "DELETE FROM DataItemsContainer WHERE `containerID` = ?" ;
+            String removeSQL = "DELETE FROM DataItemsContainer WHERE `containerID` = ?";
             PreparedStatement ps = c.prepareStatement(removeSQL);
 
             ps.setString(1, containerID);
@@ -589,8 +600,8 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
             int rowsAffected = ps.executeUpdate();
 
-            if ( rowsAffected == 0 ) {
-                throw new NoSuchMicroNetworkException("The specified micronetwork does not exist") ;
+            if (rowsAffected == 0) {
+                throw new NoSuchMicroNetworkException("The specified micronetwork does not exist");
             }
 
         } catch (SQLException e) {
@@ -616,7 +627,7 @@ public class SQLiteDataModelProvider implements DataModelProvider {
                 String rpcURL = rs.getString(4);
                 String p2pURL = rs.getString(5);
 
-                MicroNetworkState state = MicroNetworkState.valueOf(stateStr) ;
+                MicroNetworkState state = MicroNetworkState.valueOf(stateStr);
 
                 microNetworkInfo = new MicroNetworkInfo(microNetworkID, containerID, path, state, rpcURL, p2pURL);
             }
@@ -677,28 +688,120 @@ public class SQLiteDataModelProvider implements DataModelProvider {
             String containerID,
             String nodeID,
             String rpcURL,
-            String p2pURL) {
-        return null;
+            String p2pURL)
+            throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
+
+        NodeConnectionInfo nodeConnectionInfo = null;
+
+        if (getContainer(containerID) == null) {
+            throw new NoSuchContainerException("The specified Container does not exist");
+        }
+
+        try (Connection c = getConnection()) {
+
+            String insertSQL = "INSERT INTO NodeConnections (`containerID`, `nodeID`, `rpcURL`, `p2pURL`) VALUES (?, ?, ?, ?)";
+            PreparedStatement ps = c.prepareStatement(insertSQL);
+
+            ps.setString(1, containerID);
+            ps.setString(2, nodeID);
+            ps.setString(3, rpcURL);
+            ps.setString(4, p2pURL);
+
+            ps.executeUpdate();
+
+            nodeConnectionInfo = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+        } catch (SQLiteException e) {
+            SQLiteErrorCode errorCode = e.getResultCode();
+            if (errorCode == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY) {
+                throw new NodeConnectionInfoAlreadyExistsException("A Node Connection already exists with the specified Container and Node IDs");
+            }
+            throw new RuntimeException("Exception while using SQLite", e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Exception while using SQLite", e);
+        }
+
+        return nodeConnectionInfo;
     }
 
     @Override
     public NodeConnectionInfo getNodeConnectionInfo(
             String containerID,
             String nodeID) {
-        return null;
+
+        NodeConnectionInfo nodeConnectionInfo = null;
+
+        try (Connection c = getConnection()) {
+
+            String insertSQL = "SELECT `rpcURL`, `p2pURL` FROM NodeConnections WHERE `containerID` = ? AND `nodeID` = ?; ";
+            PreparedStatement ps = c.prepareStatement(insertSQL);
+
+            ps.setString(1, containerID);
+            ps.setString(2, nodeID);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String rpcURL = rs.getString(1);
+                String p2pURL = rs.getString(2);
+                nodeConnectionInfo = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Exception while using SQLite", e);
+        }
+
+        return nodeConnectionInfo;
     }
 
     @Override
     public void updateNodeConnectionInfo(NodeConnectionInfo info)
             throws NoSuchNodeException {
 
+        try (Connection c = getConnection()) {
+
+            String containerID = info.getContainerID();
+            String nodeID = info.getNodeID();
+            String rpcURL = info.getRpcURL();
+            String p2pURL = info.getP2PURL();
+
+            String insertSQL = "UPDATE NodeConnections SET `rpcURL` = ?, `p2pURL` = ? WHERE `containerID` =? AND `nodeID` = ?; ";
+            PreparedStatement ps = c.prepareStatement(insertSQL);
+
+            ps.setString(1, rpcURL);
+            ps.setString(2, p2pURL);
+            ps.setString(3, containerID);
+            ps.setString(4, nodeID);
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new NoSuchNodeException("The specified Node Connection Info does not exist");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Exception while using SQLite", e);
+        }
     }
 
     @Override
     public boolean removeNodeConnectionInfo(
             String containerID,
             String nodeID) {
-        return false;
+
+        NodeConnectionInfo nodeConnectionInfo = null;
+
+        try (Connection c = getConnection()) {
+
+            String insertSQL = "DELETE FROM NodeConnections WHERE `containerID` = ? AND `nodeID` = ?; ";
+            PreparedStatement ps = c.prepareStatement(insertSQL);
+
+            ps.setString(1, containerID);
+            ps.setString(2, nodeID);
+
+            int rowsAffected = ps.executeUpdate();
+
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Exception while using SQLite", e);
+        }
     }
 
     // -------- Accessor Methods --------

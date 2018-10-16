@@ -42,6 +42,22 @@ public class NodeConnectionInfo {
         return p2pURL;
     }
 
+    public void setContainerID(String containerID) {
+        this.containerID = containerID;
+    }
+
+    public void setNodeID(String nodeID) {
+        this.nodeID = nodeID;
+    }
+
+    public void setRpcURL(String rpcURL) {
+        this.rpcURL = rpcURL;
+    }
+
+    public void setP2pURL(String p2pURL) {
+        this.p2pURL = p2pURL;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
