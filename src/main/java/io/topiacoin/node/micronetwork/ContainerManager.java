@@ -1,6 +1,5 @@
 package io.topiacoin.node.micronetwork;
 
-import io.topiacoin.node.exceptions.BlockchainAlreadyExistsException;
 import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.FailedToCreateContainer;
 import io.topiacoin.node.exceptions.InitializationException;
@@ -16,6 +15,7 @@ import io.topiacoin.node.model.NodeConnectionInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+@Component
 public class ContainerManager {
 
     private Log _log = LogFactory.getLog(this.getClass());
