@@ -108,6 +108,14 @@ public class MemoryDataStorageProvider implements DataStorageProvider {
             throw new NoSuchDataItemException("Unable to fetch data item '" + dataID + "'");
         }
 
+        if ( offset >= data.length || offset < 0 ) {
+            throw new IOException("Offset is out of range");
+        }
+
+        if ( length >= (data.length - offset) || length < 0 ) {
+            throw new IOException("Length is invalid");
+        }
+
         outputStream.write(data, offset, length);
     }
 

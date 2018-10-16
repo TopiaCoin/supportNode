@@ -145,6 +145,15 @@ public class FileSystemStorageProvider implements DataStorageProvider {
             throw new NoSuchDataItemException("The requested Data Item does not exist");
         }
 
+        long fileSize = dataPath.length();
+        if ( offset >= fileSize || offset < 0 ) {
+            throw new IOException("Invalid Offset") ;
+        }
+
+        if ( length > ( fileSize - offset) || length < 0) {
+            throw new IOException("Invalid Offset") ;
+        }
+
         try (FileInputStream fis = new FileInputStream(dataPath)) {
             IOUtils.copyLarge(fis, outputStream, offset, length);
         }

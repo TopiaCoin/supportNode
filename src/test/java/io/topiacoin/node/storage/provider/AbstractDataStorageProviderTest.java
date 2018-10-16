@@ -138,6 +138,96 @@ public abstract class AbstractDataStorageProviderTest {
     }
 
     @Test
+    public void testFetchSubsetOfDataItemWithInvalidOffset() throws Exception {
+
+        DataStorageProvider dsp = getDataStorageProvider();
+
+        String dataID = UUID.randomUUID().toString();
+        byte[] data = new byte[16384] ;
+        Random random = new Random();
+        random.nextBytes(data);
+        boolean hasData = false ;
+        InputStream dataInputStream = new ByteArrayInputStream(data);
+
+        try {
+            dsp.saveData(dataID, dataInputStream);
+
+            try {
+                int offset = 100000 ;
+                int length = 3000 ;
+
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                dsp.fetchData(dataID, offset, length, dataOutputStream);
+                dataOutputStream.close();
+                byte[] fetchedData = dataOutputStream.toByteArray();
+                fail ( "Expected IOException was not thrown");
+            } catch ( IOException e ) {
+                // NOOP - Expected Exception
+            }
+
+            try {
+                int offset = -345 ;
+                int length = 3000 ;
+
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                dsp.fetchData(dataID, offset, length, dataOutputStream);
+                dataOutputStream.close();
+                byte[] fetchedData = dataOutputStream.toByteArray();
+                fail ( "Expected IOException was not thrown");
+            } catch ( IOException e ) {
+                // NOOP - Expected Exception
+            }
+        } finally {
+            dsp.removeData(dataID);
+        }
+    }
+
+    @Test
+    public void testFetchSubsetOfDataItemWithInvalidLength() throws Exception {
+
+        DataStorageProvider dsp = getDataStorageProvider();
+
+        String dataID = UUID.randomUUID().toString();
+        byte[] data = new byte[16384] ;
+        Random random = new Random();
+        random.nextBytes(data);
+        boolean hasData = false ;
+        InputStream dataInputStream = new ByteArrayInputStream(data);
+
+        try {
+            dsp.saveData(dataID, dataInputStream);
+
+            try {
+                int offset = 1000 ;
+                int length = 30000 ;
+
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                dsp.fetchData(dataID, offset, length, dataOutputStream);
+                dataOutputStream.close();
+                byte[] fetchedData = dataOutputStream.toByteArray();
+                fail ( "Expected IOException was not thrown");
+            } catch ( IOException e ) {
+                // NOOP - Expected Exception
+            }
+
+            try {
+                int offset = 100 ;
+                int length = -3000 ;
+
+                ByteArrayOutputStream dataOutputStream = new ByteArrayOutputStream();
+                dsp.fetchData(dataID, offset, length, dataOutputStream);
+                dataOutputStream.close();
+                byte[] fetchedData = dataOutputStream.toByteArray();
+                fail ( "Expected IOException was not thrown");
+            } catch ( IOException e ) {
+                // NOOP - Expected Exception
+            }
+        } finally {
+            dsp.removeData(dataID);
+        }
+    }
+
+    @Test
     public void testFetchNonExistentDataItem() throws Exception {
 
         DataStorageProvider dsp = getDataStorageProvider();
