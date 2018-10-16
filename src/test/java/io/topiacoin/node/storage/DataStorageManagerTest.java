@@ -31,12 +31,7 @@ public class DataStorageManagerTest {
     public void saveFetchRemoveByteArray() throws Exception {
 
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -102,12 +97,7 @@ public class DataStorageManagerTest {
     public void saveFetchRemoveDataStream() throws Exception {
 
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -175,12 +165,7 @@ public class DataStorageManagerTest {
     @Test
     public void testFetchNonExistentByteArray() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -207,12 +192,7 @@ public class DataStorageManagerTest {
     @Test
     public void testFetchNonExistentDataStream() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -241,12 +221,7 @@ public class DataStorageManagerTest {
     @Test
     public void testSaveDuplicateByteArray() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -287,12 +262,7 @@ public class DataStorageManagerTest {
     @Test
     public void testSaveDuplicateDataStream() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -334,12 +304,7 @@ public class DataStorageManagerTest {
     @Test
     public void testSaveByteArrayWithCorruptHash() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -377,12 +342,7 @@ public class DataStorageManagerTest {
     @Test
     public void testSaveDataStreamWithCorruptHash() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -421,12 +381,7 @@ public class DataStorageManagerTest {
     @Test
     public void testFetchByteArrayWithCorruptHash() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -473,12 +428,7 @@ public class DataStorageManagerTest {
     @Test
     public void testFetchDataStreamWithCorruptHash() throws Exception {
         // Setup and configure the Data Storage Manager
-        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
-        dataModelProvider.initialize();
-
-        DataModel dataModel = new DataModel() ;
-        dataModel.setProvider(dataModelProvider);
-        dataModel.initialize();
+        DataModel dataModel = getDataModel();
 
         MemoryDataStorageProvider dsp = new MemoryDataStorageProvider();
         dsp.initialize();
@@ -522,4 +472,17 @@ public class DataStorageManagerTest {
             // NOOP
         }
     }
+
+    // -------- Utility Methods --------
+
+    private DataModel getDataModel() {
+        MemoryDataModelProvider dataModelProvider = new MemoryDataModelProvider();
+        dataModelProvider.initialize();
+
+        DataModel dataModel = new DataModel() ;
+        dataModel.setProvider(dataModelProvider);
+        dataModel.initialize();
+        return dataModel;
+    }
+
 }
