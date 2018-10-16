@@ -281,7 +281,8 @@ public class BusinessLogic {
     }
 
 
-    public void submitChallenge(Challenge challenge) throws NoSuchContainerException, InvalidChallengeException {
+    public void submitChallenge(Challenge challenge)
+            throws NoSuchContainerException, InvalidChallengeException {
 
         // Verify that we are actually hosting the container this challenege is for
         // Check if this node is hosting the specified container
@@ -302,8 +303,7 @@ public class BusinessLogic {
         }
 
         // Store the Challenge in the data model
-//        containerInfo.setChallenge(challenge);
-//        _dataModel.updateContainer(containerInfo);
+        _containerManager.saveChallenge(challenge);
 
         // Submit the solution to this challenge to the SMSC
         Future<?> solutionFuture = _smscManager.submitProofSolution(containerID, solution);

@@ -4,6 +4,8 @@ import io.topiacoin.node.exceptions.ContainerAlreadyExistsException;
 import io.topiacoin.node.exceptions.FailedToCreateContainer;
 import io.topiacoin.node.exceptions.FailedToReplicateContainer;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
+import io.topiacoin.node.model.Challenge;
+import io.topiacoin.node.model.ChallengeChunkInfo;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataModel;
@@ -15,6 +17,8 @@ import io.topiacoin.node.utility.CompletedFuture;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -1117,6 +1121,108 @@ public class ContainerManagerTest {
         EasyMock.verify(microNetworkManager);
     }
 
+
+    // -------- saveChallenge() --------
+
+    @Test
+    public void testSaveChallenge() throws Exception {
+
+        // Create Test Data
+        String containerID = UUID.randomUUID().toString();
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(
+                containerID,
+                containerID,
+                "/dev/null",
+                MicroNetworkState.RUNNING,
+                rpcURL,
+                p2pURL);
+
+        DataModel dataModel = getDataModel();
+        dataModel.createContainer(containerID, 0, null);
+
+        List<ChallengeChunkInfo> chunkList = new ArrayList<>();
+        Challenge challenge = new Challenge(containerID, chunkList);
+
+        // Create Mock Objects
+        MicroNetworkManager microNetworkManager = EasyMock.createMock(MicroNetworkManager.class);
+
+        // Set Mock Expectations
+        // -- None --
+
+        // Prepare Mock Objects for Replay
+        EasyMock.replay(microNetworkManager);
+
+        // Setup the Test Object
+        ContainerManager containerManager = new ContainerManager();
+        containerManager.setDataModel(dataModel);
+        containerManager.setMicroNetworkManager(microNetworkManager);
+        containerManager.initialize();
+
+        // Execute the Test
+        containerManager.saveChallenge(challenge);
+
+        // Verify the Test Results
+        ContainerInfo fetchedInfo = dataModel.getContainer(containerID);
+        assertEquals(challenge, fetchedInfo.getChallenge());
+
+        // Verify the Mock Objects
+        EasyMock.verify(microNetworkManager);
+
+    }
+
+    @Test
+    public void testSaveChallengeForNonExistentContainer() throws Exception {
+
+        // Create Test Data
+        String containerID = UUID.randomUUID().toString();
+        String rpcURL = "http://localhost:1234/";
+        String p2pURL = "http://localhost:2345/";
+        MicroNetworkInfo microNetworkInfo = new MicroNetworkInfo(
+                containerID,
+                containerID,
+                "/dev/null",
+                MicroNetworkState.RUNNING,
+                rpcURL,
+                p2pURL);
+
+        DataModel dataModel = getDataModel();
+//        dataModel.createContainer(containerID, 0, null);
+
+        List<ChallengeChunkInfo> chunkList = new ArrayList<>();
+        Challenge challenge = new Challenge(containerID, chunkList);
+
+        // Create Mock Objects
+        MicroNetworkManager microNetworkManager = EasyMock.createMock(MicroNetworkManager.class);
+
+        // Set Mock Expectations
+        // -- None --
+
+        // Prepare Mock Objects for Replay
+        EasyMock.replay(microNetworkManager);
+
+        // Setup the Test Object
+        ContainerManager containerManager = new ContainerManager();
+        containerManager.setDataModel(dataModel);
+        containerManager.setMicroNetworkManager(microNetworkManager);
+        containerManager.initialize();
+
+        // Execute the Test
+        try {
+            containerManager.saveChallenge(challenge);
+            fail("Expected NoSuchContainerException was not thrown");
+        } catch ( NoSuchContainerException e ) {
+            // NOOP - Expected Exception
+        }
+
+        // Verify the Test Results
+        // -- None --
+
+        // Verify the Mock Objects
+        EasyMock.verify(microNetworkManager);
+
+    }
 
     // ======== Utility Methods ========
 

@@ -6,6 +6,7 @@ import io.topiacoin.node.exceptions.FailedToCreateContainer;
 import io.topiacoin.node.exceptions.InitializationException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NoSuchNodeException;
+import io.topiacoin.node.model.Challenge;
 import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.ContainerInfo;
 import io.topiacoin.node.model.DataModel;
@@ -196,6 +197,15 @@ public class ContainerManager {
 
     public void setMicroNetworkManager(MicroNetworkManager microNetworkManager) {
         _microNetworkManager = microNetworkManager;
+    }
+
+    public void saveChallenge(Challenge challenge) throws NoSuchContainerException {
+        ContainerInfo containerInfo = _dataModel.getContainer(challenge.getContainerID());
+        if ( containerInfo == null) {
+            throw new NoSuchContainerException("The container this challenge belongs to does not exist");
+        }
+        containerInfo.setChallenge(challenge);
+        _dataModel.updateContainer(containerInfo);
     }
 
     // ======== Container State Enum ========
