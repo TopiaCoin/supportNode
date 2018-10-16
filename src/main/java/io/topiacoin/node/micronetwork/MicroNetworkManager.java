@@ -1,7 +1,6 @@
 package io.topiacoin.node.micronetwork;
 
 import io.topiacoin.node.micronetwork.providers.BlockchainProvider;
-import io.topiacoin.node.model.ContainerConnectionInfo;
 import io.topiacoin.node.model.MicroNetworkInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

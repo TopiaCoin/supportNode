@@ -14,7 +14,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
-public abstract class AbstractDataModelContainerInfoTest {
+public abstract class AbstractContainerInfoDataModelProviderTest {
 
     protected abstract DataModel getDataModel();
 

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
-public abstract class AbstractDataModelDataItemInfoTest {
+public abstract class AbstractDataItemInfoDataModelProviderTest {
 
     public abstract DataModel getDataModel();
 

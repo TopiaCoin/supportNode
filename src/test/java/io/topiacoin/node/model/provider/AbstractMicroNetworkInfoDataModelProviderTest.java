@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
-public abstract class AbstractDataModelMicroNetworkInfoTest {
+public abstract class AbstractMicroNetworkInfoDataModelProviderTest {
 
     public abstract DataModel getDataModel();
 
@@ -69,12 +69,13 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
         dataModel.updateMicroNetwork(testMicroNetworkInfo);
 
         fetchedMicroNetworkInfo = dataModel.getMicroNetwork(testMicroNetworkInfo.getId());
-        assertEquals("An ID", testMicroNetworkInfo.getId());
-        assertEquals("new ID", testMicroNetworkInfo.getContainerID());
-        assertEquals("new Path", testMicroNetworkInfo.getPath());
-        assertEquals(MicroNetworkState.RUNNING, testMicroNetworkInfo.getState());
-        assertEquals("another rpcUrl", testMicroNetworkInfo.getRpcURL());
-        assertEquals("another p2pUrl", testMicroNetworkInfo.getP2pURL());
+
+        assertEquals("An ID", fetchedMicroNetworkInfo.getId());
+        assertEquals("new ID", fetchedMicroNetworkInfo.getContainerID());
+        assertEquals("new Path", fetchedMicroNetworkInfo.getPath());
+        assertEquals(MicroNetworkState.RUNNING, fetchedMicroNetworkInfo.getState());
+        assertEquals("another rpcUrl", fetchedMicroNetworkInfo.getRpcURL());
+        assertEquals("another p2pUrl", fetchedMicroNetworkInfo.getP2pURL());
     }
 
     @Test
@@ -122,7 +123,7 @@ public abstract class AbstractDataModelMicroNetworkInfoTest {
     }
 
     @Test(expected = NoSuchMicroNetworkException.class)
-    public void testUpdateNonExistentContainer() throws Exception {
+    public void testUpdateNonExistentMicroNetwork() throws Exception {
         MicroNetworkInfo testMicroNetworkInfo = new MicroNetworkInfo();
         testMicroNetworkInfo.setId("An ID");
         testMicroNetworkInfo.setContainerID("Another ID");
