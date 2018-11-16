@@ -1,5 +1,6 @@
 package io.topiacoin.node.smsc;
 
+import io.topiacoin.eosrpcadapter.exceptions.ChainException;
 import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerInfo;
@@ -46,7 +47,9 @@ public interface SMSCManager {
      * @return A Future that will resolve to the List of Nodes assigned to the container ID.  The future will throw an
      * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
-    Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)throws NotRegisteredException;
+    Future<List<NodeConnectionInfo>> getNodesForContainer(long containerID)throws NotRegisteredException;
+
+    Future<NodeConnectionInfo> getNodeInfo(Long nodeID) throws ChainException;
 
     /**
      * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
@@ -54,7 +57,7 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the registration process.
      */
-    Future<Void> registerNode();
+    Future<Void> registerNode(long nodeID);
 
     /**
      * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
@@ -62,7 +65,7 @@ public interface SMSCManager {
      *
      * @return A Future that can be used to wait for the completion of the unregistration process.
      */
-    Future<Void> unregisterNode()throws NotRegisteredException;
+    Future<Void> unregisterNode(long nodeID)throws NotRegisteredException;
 
     /**
      * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet
@@ -79,6 +82,10 @@ public interface SMSCManager {
      * @param signingAccount The ID of the account to use for signing transactions.
      */
     void setSigningAccount(String signingAccount);
+
+    void setContractAccount(String contractAccount);
+
+    void setWalletName(String walletName);
 
     /**
      * Retrieves a list of disputes that are assigned to this node that have not been handled yet.

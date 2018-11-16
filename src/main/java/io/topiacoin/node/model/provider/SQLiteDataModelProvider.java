@@ -128,11 +128,9 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
         // NodeConnection Table
         String nodeConnectionCreateSQL = "CREATE TABLE IF NOT EXISTS NodeConnections (" +
-                "containerID    TEXT                NOT NULL, " +
                 "nodeID         TEXT                NOT NULL, " +
-                "rpcURL         TEXT, " +
-                "p2pURL         TEXT," +
-                "PRIMARY KEY (containerID, nodeID) );";
+                "nodeURL        TEXT," +
+                "PRIMARY KEY (nodeID) );";
         PreparedStatement nodeConnectionPS = c.prepareStatement(nodeConnectionCreateSQL);
         nodeConnectionPS.execute();
     }
@@ -685,31 +683,23 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
     @Override
     public NodeConnectionInfo createNodeConnectionInfo(
-            String containerID,
             String nodeID,
-            String rpcURL,
-            String p2pURL)
+            String nodeURL)
             throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
 
         NodeConnectionInfo nodeConnectionInfo = null;
 
-        if (getContainer(containerID) == null) {
-            throw new NoSuchContainerException("The specified Container does not exist");
-        }
-
         try (Connection c = getConnection()) {
 
-            String insertSQL = "INSERT INTO NodeConnections (`containerID`, `nodeID`, `rpcURL`, `p2pURL`) VALUES (?, ?, ?, ?)";
+            String insertSQL = "INSERT INTO NodeConnections (`nodeID`, `nodeURL`) VALUES (?, ?)";
             PreparedStatement ps = c.prepareStatement(insertSQL);
 
-            ps.setString(1, containerID);
-            ps.setString(2, nodeID);
-            ps.setString(3, rpcURL);
-            ps.setString(4, p2pURL);
+            ps.setString(1, nodeID);
+            ps.setString(2, nodeURL);
 
             ps.executeUpdate();
 
-            nodeConnectionInfo = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+            nodeConnectionInfo = new NodeConnectionInfo(nodeID, nodeURL);
         } catch (SQLiteException e) {
             SQLiteErrorCode errorCode = e.getResultCode();
             if (errorCode == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY) {
@@ -725,25 +715,22 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
     @Override
     public NodeConnectionInfo getNodeConnectionInfo(
-            String containerID,
             String nodeID) {
 
         NodeConnectionInfo nodeConnectionInfo = null;
 
         try (Connection c = getConnection()) {
 
-            String insertSQL = "SELECT `rpcURL`, `p2pURL` FROM NodeConnections WHERE `containerID` = ? AND `nodeID` = ?; ";
+            String insertSQL = "SELECT `nodeURL` FROM NodeConnections WHERE `nodeID` = ?; ";
             PreparedStatement ps = c.prepareStatement(insertSQL);
 
-            ps.setString(1, containerID);
-            ps.setString(2, nodeID);
+            ps.setString(1, nodeID);
 
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String rpcURL = rs.getString(1);
-                String p2pURL = rs.getString(2);
-                nodeConnectionInfo = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+                String nodeURL = rs.getString(1);
+                nodeConnectionInfo = new NodeConnectionInfo(nodeID, nodeURL);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Exception while using SQLite", e);
@@ -758,18 +745,14 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
         try (Connection c = getConnection()) {
 
-            String containerID = info.getContainerID();
             String nodeID = info.getNodeID();
-            String rpcURL = info.getRpcURL();
-            String p2pURL = info.getP2PURL();
+            String nodeURL = info.getNodeURL();
 
-            String insertSQL = "UPDATE NodeConnections SET `rpcURL` = ?, `p2pURL` = ? WHERE `containerID` =? AND `nodeID` = ?; ";
+            String insertSQL = "UPDATE NodeConnections SET `nodeURL` = ? WHERE `nodeID` = ?; ";
             PreparedStatement ps = c.prepareStatement(insertSQL);
 
-            ps.setString(1, rpcURL);
-            ps.setString(2, p2pURL);
-            ps.setString(3, containerID);
-            ps.setString(4, nodeID);
+            ps.setString(1, nodeURL);
+            ps.setString(2, nodeID);
 
             int rowsAffected = ps.executeUpdate();
             if (rowsAffected == 0) {
@@ -783,18 +766,16 @@ public class SQLiteDataModelProvider implements DataModelProvider {
 
     @Override
     public boolean removeNodeConnectionInfo(
-            String containerID,
             String nodeID) {
 
         NodeConnectionInfo nodeConnectionInfo = null;
 
         try (Connection c = getConnection()) {
 
-            String insertSQL = "DELETE FROM NodeConnections WHERE `containerID` = ? AND `nodeID` = ?; ";
+            String insertSQL = "DELETE FROM NodeConnections WHERE `nodeID` = ?; ";
             PreparedStatement ps = c.prepareStatement(insertSQL);
 
-            ps.setString(1, containerID);
-            ps.setString(2, nodeID);
+            ps.setString(1, nodeID);
 
             int rowsAffected = ps.executeUpdate();
 

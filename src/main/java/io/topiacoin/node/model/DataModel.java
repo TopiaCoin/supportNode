@@ -149,13 +149,13 @@ public class DataModel {
         return _provider.removeBlockchain(id);
     }
 
-    public NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL)
+    public NodeConnectionInfo createNodeConnectionInfo(String nodeID, String nodeURL)
             throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
-        return _provider.createNodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+        return _provider.createNodeConnectionInfo(nodeID, nodeURL);
     }
 
-    public NodeConnectionInfo getNodeConnectionInfo(String containerID, String nodeID) {
-        return _provider.getNodeConnectionInfo(containerID, nodeID);
+    public NodeConnectionInfo getNodeConnectionInfo(String nodeID) {
+        return _provider.getNodeConnectionInfo(nodeID);
     }
 
     public void updateNodeConnectionInfo(NodeConnectionInfo info)
@@ -163,8 +163,8 @@ public class DataModel {
         _provider.updateNodeConnectionInfo(info);
     }
 
-    public boolean removeNodeConnectionInfo(String containerID, String nodeID) {
-        return _provider.removeNodeConnectionInfo(containerID, nodeID);
+    public boolean removeNodeConnectionInfo(String nodeID) {
+        return _provider.removeNodeConnectionInfo(nodeID);
     }
 
     // -------- Accessor Methods --------

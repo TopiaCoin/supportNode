@@ -149,11 +149,13 @@ public class ContainerManager {
         }
 
         // Retrieve the Peer URL
-        NodeConnectionInfo nodeInfo = _dataModel.getNodeConnectionInfo(containerID, peerID) ;
+        NodeConnectionInfo nodeInfo = _dataModel.getNodeConnectionInfo(peerID) ;
         if ( nodeInfo == null ) {
             throw new NoSuchNodeException("The specified peer node cannot be found");
         }
-        String peerURL = nodeInfo.getP2PURL();
+        String peerURL = nodeInfo.getNodeURL();
+
+        // TODO - Must contact the Node and retrieve the P2PUrl from it
 
         Future<MicroNetworkInfo> syncFuture = _microNetworkManager.syncBlockchain(peerURL, containerID);
 

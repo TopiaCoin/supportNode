@@ -811,7 +811,7 @@ public class ContainerManagerTest {
 
         DataModel dataModel = getDataModel();
         dataModel.createContainer(containerID, 0, null);
-        dataModel.createNodeConnectionInfo(containerID, peerNodeID, peerRPCURL, peerP2PURL);
+        dataModel.createNodeConnectionInfo(peerNodeID, peerRPCURL);
 
         Future<MicroNetworkInfo> syncFuture = new CompletedFuture<>(microNetworkInfo);
 
@@ -954,7 +954,7 @@ public class ContainerManagerTest {
 
         DataModel dataModel = getDataModel();
         dataModel.createContainer(containerID, 0, null);
-        dataModel.createNodeConnectionInfo(containerID, peerNodeID, peerRPCURL, peerP2PURL);
+        dataModel.createNodeConnectionInfo(peerNodeID, peerRPCURL);
 
         CompletedFuture<MicroNetworkInfo> syncFuture = new CompletedFuture<>(microNetworkInfo);
         syncFuture.setException(new FailedToReplicateContainer());
