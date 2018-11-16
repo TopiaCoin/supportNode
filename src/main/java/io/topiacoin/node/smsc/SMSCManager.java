@@ -47,25 +47,27 @@ public interface SMSCManager {
      * @return A Future that will resolve to the List of Nodes assigned to the container ID.  The future will throw an
      * exception if the container ID does not exist, or if this node is not assigned to the container.
      */
-    Future<List<NodeConnectionInfo>> getNodesForContainer(long containerID)throws NotRegisteredException;
+    Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)throws NotRegisteredException;
 
-    Future<NodeConnectionInfo> getNodeInfo(Long nodeID) throws ChainException;
+    Future<NodeConnectionInfo> getNodeInfo(String nodeID) throws ChainException;
 
     /**
      * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
      * configured staking account.
      *
      * @return A Future that can be used to wait for the completion of the registration process.
+     * @param nodeID
      */
-    Future<Void> registerNode(long nodeID);
+    Future<Void> registerNode(String nodeID);
 
     /**
      * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
      * transfer of any containers hosted on this node to other containers to maintain availability of end user data.
      *
      * @return A Future that can be used to wait for the completion of the unregistration process.
+     * @param nodeID
      */
-    Future<Void> unregisterNode(long nodeID)throws NotRegisteredException;
+    Future<Void> unregisterNode(String nodeID)throws NotRegisteredException;
 
     /**
      * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet

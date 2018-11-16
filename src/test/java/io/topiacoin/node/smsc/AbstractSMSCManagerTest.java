@@ -22,7 +22,7 @@ public abstract class AbstractSMSCManagerTest {
     public void testRegisterUnregisterNode() throws Exception {
         SMSCManager smscManager = getSMSCManager();
 
-        long nodeID = UUID.randomUUID().getLeastSignificantBits();
+        String nodeID = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
 
         Future<Void> future = smscManager.registerNode(nodeID);
 
@@ -37,7 +37,7 @@ public abstract class AbstractSMSCManagerTest {
     public void testGetNodeInfo() throws Exception {
         SMSCManager smscManager = getSMSCManager();
 
-        long nodeID = UUID.randomUUID().getLeastSignificantBits();
+        String nodeID = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
 
         try {
             // We must register the Node in order to fetch assigned containers
@@ -49,7 +49,7 @@ public abstract class AbstractSMSCManagerTest {
             NodeConnectionInfo nodeConnectionInfo = containersFuture.get();
 
             assertNotNull(nodeConnectionInfo);
-            assertEquals((Long)nodeID, nodeConnectionInfo.getNodeID()) ;
+            assertEquals(nodeID, nodeConnectionInfo.getNodeID()) ;
             assertNotNull(nodeConnectionInfo.getNodeURL());
         } finally {
             Future<Void> unregisterFuture = smscManager.unregisterNode(nodeID);
@@ -61,7 +61,7 @@ public abstract class AbstractSMSCManagerTest {
     public void testGetContainers() throws Exception {
         SMSCManager smscManager = getSMSCManager();
 
-        long nodeID = UUID.randomUUID().getLeastSignificantBits();
+        String nodeID = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
             
         try {
             // We must register the Node in order to fetch assigned containers
