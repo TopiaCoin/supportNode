@@ -32,18 +32,27 @@ public class EOSSMSCManager implements SMSCManager {
 
     private Log _log = LogFactory.getLog(this.getClass());
 
+    // -- Spring Autowired Members --
+
+//    @Autowired
     private String _stakingAccount;
+
+//    @Autowired
     private String _signingAccount;
+
+//    @Autowired
     private String _walletName;
 
 //    @Autowired
     private String _contractAccount;
 
+//    @Autowired
     private EOSRPCAdapter _eosRPCAdapter;
 
-    private ExecutorService _executorService;
+    // -- Internal Members --
 
-    private Long _nodeID;
+    private ExecutorService _executorService;
+    private String _nodeID;
 
     // -------- Lifecycle Methods --------
 
@@ -103,11 +112,11 @@ public class EOSSMSCManager implements SMSCManager {
             String table = "assignments";
             int indexPosition = 3 ; // This is the Node ID Index
             String keyType = "i64";
-            String lowerBound = Long.toUnsignedString(_nodeID);
-            String upperBound = Long.toUnsignedString(_nodeID + 1);
+            String lowerBound = _nodeID;
+            String upperBound = Long.toUnsignedString(Long.parseUnsignedLong(_nodeID) + 1);
             int limit = Integer.MAX_VALUE;
             boolean json = true;
-            TableRows tableRows = _eosRPCAdapter.chain().getTableRows(_contractAccount, scope, table, lowerBound, upperBound, limit, json);
+            TableRows tableRows = _eosRPCAdapter.chain().getTableRows(_contractAccount, scope, table, indexPosition, keyType, lowerBound, upperBound, limit, json);
 
             // Grab the Container ID from the Table Row, if we are assigned to the Container.
             for ( Map<String, Object> row : tableRows.rows) {
@@ -139,9 +148,9 @@ public class EOSSMSCManager implements SMSCManager {
             boolean assigned = false;
             ContainerInfo containerInfo = null;
 
-            long contID = Long.valueOf(containerID, 16) ;
+            long contID = stringToEosID(containerID);
             {
-                // TODO - Search the Container/Node Assignment table by containerID to see if we are assigned to the specified container.
+                // Search the Container/Node Assignment table by containerID to see if we are assigned to the specified container.
                 String scope = _contractAccount;
                 String table = "assignments";
                 int indexPosition = 2 ; // This is the Container ID Index
@@ -152,12 +161,17 @@ public class EOSSMSCManager implements SMSCManager {
                 boolean json = true;
                 TableRows assignmentTableRows = _eosRPCAdapter.chain().getTableRows(_contractAccount, scope, table, indexPosition, keyType, lowerBound, upperBound, limit, json);
 
-                // TODO - Iterate through the table rows and see if this Node ID is assigned to the container.
-                assigned = false ;
+                // Iterate through the table rows and see if this Node ID is assigned to the container.
+                for ( Map<String,Object> row : assignmentTableRows.rows){
+                    if ( row.get("nodeID").equals(_nodeID)) {
+                        assigned = true ;
+                        break ;
+                    }
+                }
             }
 
             if (assigned) {
-                // TODO - Search the Container table by container ID to get the info about the specified container
+                // Search the Container table by container ID to get the info about the specified container
                 String scope = _contractAccount;
                 String table = "containers";
                 String lowerBound = Long.toUnsignedString(contID);
@@ -166,7 +180,13 @@ public class EOSSMSCManager implements SMSCManager {
                 boolean json = true;
                 TableRows containerTableRows = _eosRPCAdapter.chain().getTableRows(_contractAccount, scope, table, lowerBound, upperBound, limit, json);
 
-                // TODO - Grab the Container Info from the Table Row.
+                // Grab the Container Info from the Table Row.
+                if ( containerTableRows.rows.size() > 0 ) {
+                    Map<String, Object> row = containerTableRows.rows.get(0);
+                    Integer expDateInt = (Integer) row.get("expirationTime");
+                    long expirationDate = (long)expDateInt;
+                    containerInfo = new ContainerInfo(containerID, expirationDate);
+                }
             } else {
                 throw new NoSuchContainerException("This node is not assigned to the specified container");
             }
@@ -193,7 +213,7 @@ public class EOSSMSCManager implements SMSCManager {
 
             List<NodeConnectionInfo> nodeInfoList = new ArrayList<>();
 
-            long containerIDValue = Long.parseLong(containerID);
+            long containerIDValue = stringToEosID(containerID);
 
             // Search the Container/Node Assignment table by containerID to get a list of all of the Node IDs to which the container is assigned.
             String scope = _contractAccount;
@@ -208,9 +228,9 @@ public class EOSSMSCManager implements SMSCManager {
 
             // Grab the Node Info from the Table Row, if it is assigned to the Container.
             for ( Map<String, Object> row : tableRows.rows) {
-                if ( row.get("containerID").equals(containerIDValue)) {
-                    Long nodeID = (Long)row.get("nodeID");
-                    NodeConnectionInfo nodeInfo = getNodeInfoInternal(Long.toString(nodeID)) ;
+                if ( row.get("containerID").equals(containerID)) {
+                    String nodeID = (String) row.get("nodeID");
+                    NodeConnectionInfo nodeInfo = getNodeInfoInternal(nodeID) ;
                     nodeInfoList.add(nodeInfo);
                 }
             }
@@ -232,7 +252,7 @@ public class EOSSMSCManager implements SMSCManager {
     private NodeConnectionInfo getNodeInfoInternal(String nodeID) throws ChainException {
         NodeConnectionInfo nodeConnectionInfo = null;
 
-        long nodeIDValue = Long.parseUnsignedLong(nodeID);
+        long nodeIDValue = stringToEosID(nodeID);
 
         // Search the Container/Node Assignment table by containerID to get a list of all of the Node IDs to which the container is assigned.
         String scope = _contractAccount;
@@ -267,7 +287,7 @@ public class EOSSMSCManager implements SMSCManager {
 
         return _executorService.submit(() -> {
 
-            _nodeID = Long.parseUnsignedLong(nodeID) ;
+            _nodeID = nodeID;
 
             // Transaction expires 60 seconds from now
             Date expirationDate = new Date(System.currentTimeMillis() + 60000);
@@ -352,6 +372,7 @@ public class EOSSMSCManager implements SMSCManager {
 
         return _executorService.submit(() -> {
 
+            // Clear the internally stored nodeID.
             _nodeID = null ;
 
             // Transaction expires 60 seconds from now
@@ -453,6 +474,30 @@ public class EOSSMSCManager implements SMSCManager {
         return null;
     }
 
+
+    // -------- Private Helper Methods --------
+
+    /**
+     * Converts a String ID into a Long, which are used as the EOS IDs
+     *
+     * @param eosIDString The String containing the ID.
+     *
+     * @return A long representation of the EOS ID String.
+     */
+    private long stringToEosID(String eosIDString) {
+        return Long.parseUnsignedLong(eosIDString);
+    }
+
+    /**
+     * Converts a Long into an EOS ID String.
+     *
+     * @param eosID A long representation of an EOS ID.
+     *
+     * @return A String representation of the EOS ID.
+     */
+    private String eosIDToString(long eosID) {
+        return Long.toUnsignedString(eosID);
+    }
 
     // -------- Accessor Methods --------
 
