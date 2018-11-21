@@ -1,5 +1,6 @@
 package io.topiacoin.node.smsc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.topiacoin.eosrpcadapter.EOSRPCAdapter;
 import io.topiacoin.eosrpcadapter.exceptions.ChainException;
 import io.topiacoin.eosrpcadapter.exceptions.WalletException;
@@ -87,7 +88,26 @@ public class EOSSMSCManager implements SMSCManager {
     @Override
     public Future<Void> submitProofSolution(String containerID, ChallengeSolution solution)
             throws NotRegisteredException {
-        return null;
+
+        return _executorService.submit(() -> {
+
+            List<Transaction.Authorization> authorizations = new ArrayList<>();
+            authorizations.add(new Transaction.Authorization(_signingAccount, "active"));
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String solutionString = objectMapper.writeValueAsString(solution);
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("containerID", containerID);
+            args.put("nodeID", _nodeID);
+            args.put("solution", solutionString);
+
+            Action action = new Action(_contractAccount, "solveproof", authorizations, args);
+            Date expirationDate = new Date(System.currentTimeMillis() + 60000);
+            _eosRPCAdapter.pushTransaction(action, expirationDate, _walletName);
+
+            return null;
+        });
     }
 
     /**
@@ -103,7 +123,7 @@ public class EOSSMSCManager implements SMSCManager {
             throw new NotRegisteredException("This node is not yet registered");
         }
 
-        Future<List<String>> future = _executorService.submit(() -> {
+        return _executorService.submit(() -> {
 
             List<String> containerIDs = new ArrayList<>();
 
@@ -127,8 +147,6 @@ public class EOSSMSCManager implements SMSCManager {
 
             return containerIDs;
         });
-
-        return future;
     }
 
     /**
@@ -143,7 +161,7 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<ContainerInfo> getContainerInfo(String containerID)
             throws NotRegisteredException {
 
-        Future<ContainerInfo> future = _executorService.submit(() -> {
+        return _executorService.submit(() -> {
 
             boolean assigned = false;
             ContainerInfo containerInfo = null;
@@ -193,8 +211,6 @@ public class EOSSMSCManager implements SMSCManager {
 
             return containerInfo;
         });
-
-        return future;
     }
 
     /**
@@ -209,7 +225,7 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)
             throws NotRegisteredException {
 
-        Future<List<NodeConnectionInfo>> future = _executorService.submit(() -> {
+        return _executorService.submit(() -> {
 
             List<NodeConnectionInfo> nodeInfoList = new ArrayList<>();
 
@@ -237,8 +253,6 @@ public class EOSSMSCManager implements SMSCManager {
 
             return nodeInfoList;
         });
-
-        return future;
     }
 
     @Override
@@ -414,8 +428,118 @@ public class EOSSMSCManager implements SMSCManager {
 
             return null;
         });
-
     }
+
+    @Override
+    public boolean isRegistered() {
+        return _nodeID != null;
+    }
+
+    @Override
+    public String getNodeID() {
+        return _nodeID;
+    }
+
+    /**
+     * Retrieves a list of disputes that are assigned to this node that have not been handled yet.
+     *
+     * @return A Future that will resolve to the list of Disputes assigned to this node.
+     */
+    @Override
+    public Future<List<Dispute>> getAssignedDisputes()
+            throws NotRegisteredException {
+        return _executorService.submit(() -> {
+
+            List<Dispute> disputeList = new ArrayList<>();
+
+            String scope = _contractAccount;
+            String table = "decisions";
+
+            int indexPosition = 3;
+            String keyType = "i64";
+            String lowerBound = _nodeID;
+            String upperBound = eosIDToString(stringToEosID(_nodeID) + 1);
+            int limit = Integer.MAX_VALUE;
+
+            TableRows assignmentTableRows = _eosRPCAdapter.chain().getTableRows(_contractAccount, scope, table, indexPosition, keyType, lowerBound, upperBound, limit, true);
+
+            for ( Map<String, Object> row : assignmentTableRows.rows) {
+                if ( row.get("nodeID").equals(_nodeID)) {
+                    Dispute dispute = getDisputeInternal(row.get("disputeID")) ;
+                    disputeList.add(dispute);
+                }
+            }
+
+            return disputeList;
+        });
+    }
+
+    @Override
+    public Future<Dispute> getDispute(String disputeID) {
+        return _executorService.submit(() ->{
+            return getDisputeInternal(disputeID);
+        });
+    }
+
+    private Dispute getDisputeInternal(Object disputeID) throws ChainException {
+        Dispute dispute = null;
+
+        String scope = _contractAccount;
+        String table = "disputes";
+
+        int indexPosition = 1;
+        String keyType = "i64";
+        String lowerBound = disputeID.toString();
+        int limit = 1;
+
+        TableRows assignmentTableRows = _eosRPCAdapter.chain().getTableRows(
+                _contractAccount,
+                scope,
+                table,
+                indexPosition,
+                keyType,
+                lowerBound,
+                "-1",
+                limit,
+                true);
+
+        if ( assignmentTableRows.rows.size() > 0 ) {
+            Map<String, Object> row = assignmentTableRows.rows.get(0);
+
+            String containerID = (String) row.get("containerID");
+            String disputingAccount = (String) row.get("disputingAccount");
+            String disputedNodeID = (String) row.get("nodeID");
+            String chainURL = (String) row.get("chainURL");
+            String status = (String) row.get("status");
+            List<String> chunkIDs = (List<String>) row.get("disputedChunkIDs");
+
+            dispute = new Dispute (
+                    disputeID.toString(),
+                    containerID,
+                    disputedNodeID,
+                    disputingAccount,
+                    status,
+                    chainURL,
+                    chunkIDs);
+        }
+
+        return dispute;
+    }
+
+    /**
+     * Submits a ruling on a dispute to the SMSC.
+     *
+     * @param disputeID The ID of the dispute for which a ruling is being submitted.
+     * @param ruling    The dispute ruling being submitted.
+     *
+     * @return A Future that can be used to wait for the completion of the dispute resolution submission.
+     */
+    @Override
+    public Future<Void> sendDisputeResolution(String disputeID, String ruling)
+            throws NotRegisteredException {
+        return null;
+    }
+
 
     /**
      * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet
@@ -447,31 +571,6 @@ public class EOSSMSCManager implements SMSCManager {
     @Override
     public void setWalletName(String walletName) {
         _walletName = walletName;
-    }
-
-    /**
-     * Retrieves a list of disputes that are assigned to this node that have not been handled yet.
-     *
-     * @return A Future that will resolve to the list of Disputes assigned to this node.
-     */
-    @Override
-    public Future<List<Dispute>> getAssignedDisputes()
-            throws NotRegisteredException {
-        return null;
-    }
-
-    /**
-     * Submits a ruling on a dispute to the SMSC.
-     *
-     * @param disputeID The ID of the dispute for which a ruling is being submitted.
-     * @param ruling    The dispute ruling being submitted.
-     *
-     * @return A Future that can be used to wait for the completion of the dispute resolution submission.
-     */
-    @Override
-    public Future<Void> sendDisputeResolution(String disputeID, String ruling)
-            throws NotRegisteredException {
-        return null;
     }
 
 

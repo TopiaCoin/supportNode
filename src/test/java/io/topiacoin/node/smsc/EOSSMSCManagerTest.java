@@ -1,17 +1,23 @@
 package io.topiacoin.node.smsc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.topiacoin.eosrpcadapter.EOSRPCAdapter;
 import io.topiacoin.eosrpcadapter.exceptions.ChainException;
 import io.topiacoin.eosrpcadapter.exceptions.WalletException;
 import io.topiacoin.eosrpcadapter.messages.Action;
 import io.topiacoin.eosrpcadapter.messages.SignedTransaction;
+import io.topiacoin.eosrpcadapter.messages.TableRows;
 import io.topiacoin.eosrpcadapter.messages.Transaction;
+import io.topiacoin.node.model.ChallengeSolution;
+import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,7 +55,7 @@ public class EOSSMSCManagerTest extends AbstractSMSCManagerTest {
 
             _eosRPCAdapter = new EOSRPCAdapter(nodeURL, walletURL);
 
-            _walletName = "test-" + System.currentTimeMillis()/1000;
+            _walletName = "test-" + System.currentTimeMillis() / 1000;
 
             _eosRPCAdapter.wallet().create(_walletName);
             _eosRPCAdapter.wallet().importKey(_walletName, signingKey);
@@ -78,13 +84,13 @@ public class EOSSMSCManagerTest extends AbstractSMSCManagerTest {
         List<Transaction.Authorization> authorizations = new ArrayList<>();
         authorizations.add(new Transaction.Authorization(sourceAccount, "active"));
 
-        String amount = String.format( "%.4f TPC", tokenAmount );
+        String amount = String.format("%.4f TPC", tokenAmount);
 
         Map<String, Object> args = new HashMap<>();
         args.put("from", sourceAccount);
         args.put("to", _contractAccount);
         args.put("quantity", amount);
-        args.put("memo", "ContainerPayment");
+        args.put("memo", "Container Payment " + System.currentTimeMillis());
 
         Action action = new Action("eosio.token", "transfer", authorizations, args);
         Date expirationDate = new Date(System.currentTimeMillis() + 60000);
@@ -101,6 +107,8 @@ public class EOSSMSCManagerTest extends AbstractSMSCManagerTest {
 
         // Create the container
         String containerID = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
+
+        System.err.println ( "------ " + containerID + " ------") ;
 
         List<Transaction.Authorization> authorizations = new ArrayList<>();
         authorizations.add(new Transaction.Authorization(_containerAccount, "active"));
@@ -131,5 +139,79 @@ public class EOSSMSCManagerTest extends AbstractSMSCManagerTest {
         Date expirationDate = new Date(System.currentTimeMillis() + 60000);
 
         _eosRPCAdapter.pushTransaction(action, expirationDate, _walletName);
+    }
+
+    @Override
+    protected void submitProofSolutionHash(String containerID, String nodeID, String verificationValue, String transactionID, int blockNumber, String chunkHash) throws Exception {
+
+        // Generate the Proof Solution Hash
+        MessageDigest sha256 = MessageDigest.getInstance("sha256");
+        ChallengeSolution solution = new ChallengeSolution(verificationValue, transactionID, blockNumber, chunkHash);
+        ObjectMapper mapper = new ObjectMapper();
+        sha256.update(mapper.writeValueAsBytes(solution));
+        String hash = Hex.encodeHexString(sha256.digest());
+
+        // Submit the Proof Solution Hash
+        List<Transaction.Authorization> authorizations = new ArrayList<>();
+        authorizations.add(new Transaction.Authorization(_containerAccount, "active"));
+
+        Map<String, Object> args = new HashMap<>();
+        args.put("containerID", containerID);
+        args.put("nodeID", nodeID);
+        args.put("solutionHash", hash);
+
+        Action action = new Action(_contractAccount, "setproof", authorizations, args);
+        Date expirationDate = new Date(System.currentTimeMillis() + 60000);
+
+        _eosRPCAdapter.pushTransaction(action, expirationDate, _walletName);
+    }
+
+    @Override
+    protected String fileDispute(String containerID, String nodeID, String chainURL, List<String> chunkIDs) throws Exception {
+        String disputeID = null;
+
+        // File the Dispute
+        List<Transaction.Authorization> authorizations = new ArrayList<>();
+        authorizations.add(new Transaction.Authorization(_containerAccount, "active"));
+
+        Map<String, Object> args = new HashMap<>();
+        args.put("containerID", containerID);
+        args.put("nodeID", nodeID);
+        args.put("chainURL", chainURL);
+        args.put("disputedChunkIDs", chunkIDs);
+
+        Action action = new Action(_contractAccount, "filedispute", authorizations, args);
+        Date expirationDate = new Date(System.currentTimeMillis() + 60000);
+
+        _eosRPCAdapter.pushTransaction(action, expirationDate, _walletName);
+
+        // Retrieve the Dispute ID of the just filed dispute
+        String table = "disputes";
+        int limit = Integer.MAX_VALUE;
+        TableRows tableRows = _eosRPCAdapter.chain().getTableRows(
+                _contractAccount,
+                _contractAccount,
+                table,
+                limit,
+                true);
+
+        for ( Map<String,Object> row : tableRows.rows) {
+            if ( row.get("containerID").equals(containerID) &&
+                    row.get("nodeID").equals(nodeID)) {
+                disputeID = row.get("disputeID").toString() ;
+                break;
+            }
+        }
+
+        return disputeID;
+    }
+
+
+
+
+
+    @Test
+    public void testTransactionChecksumFailure() {
+
     }
 }

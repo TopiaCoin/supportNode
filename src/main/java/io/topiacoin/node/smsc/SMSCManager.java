@@ -89,12 +89,18 @@ public interface SMSCManager {
 
     void setWalletName(String walletName);
 
+    boolean isRegistered();
+
+    String getNodeID();
+
     /**
      * Retrieves a list of disputes that are assigned to this node that have not been handled yet.
      *
      * @return A Future that will resolve to the list of Disputes assigned to this node.
      */
     Future<List<Dispute>> getAssignedDisputes()throws NotRegisteredException;
+
+    Future<Dispute> getDispute(String disputeID);
 
     /**
      * Submits a ruling on a dispute to the SMSC.
