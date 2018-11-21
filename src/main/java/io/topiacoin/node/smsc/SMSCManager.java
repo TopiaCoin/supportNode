@@ -1,5 +1,7 @@
 package io.topiacoin.node.smsc;
 
+import io.topiacoin.eosrpcadapter.exceptions.ChainException;
+import io.topiacoin.node.exceptions.AlreadyRegisteredException;
 import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerInfo;
@@ -48,21 +50,25 @@ public interface SMSCManager {
      */
     Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)throws NotRegisteredException;
 
+    Future<NodeConnectionInfo> getNodeInfo(String nodeID) throws ChainException;
+
     /**
      * Registers this node with the SMSC.  This process will involve the staking of tokens with the SMSC from the
      * configured staking account.
      *
      * @return A Future that can be used to wait for the completion of the registration process.
+     * @param nodeID
      */
-    Future<Void> registerNode();
+    Future<Void> registerNode(String nodeID) throws AlreadyRegisteredException;
 
     /**
      * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
      * transfer of any containers hosted on this node to other containers to maintain availability of end user data.
      *
      * @return A Future that can be used to wait for the completion of the unregistration process.
+     * @param nodeID
      */
-    Future<Void> unregisterNode()throws NotRegisteredException;
+    Future<Void> unregisterNode(String nodeID)throws NotRegisteredException;
 
     /**
      * The ID of the account that should be used for staking tokens on registration.  The configured blockchain wallet
@@ -80,12 +86,22 @@ public interface SMSCManager {
      */
     void setSigningAccount(String signingAccount);
 
+    void setContractAccount(String contractAccount);
+
+    void setWalletName(String walletName);
+
+    boolean isRegistered();
+
+    String getNodeID();
+
     /**
      * Retrieves a list of disputes that are assigned to this node that have not been handled yet.
      *
      * @return A Future that will resolve to the list of Disputes assigned to this node.
      */
     Future<List<Dispute>> getAssignedDisputes()throws NotRegisteredException;
+
+    Future<Dispute> getDispute(String disputeID);
 
     /**
      * Submits a ruling on a dispute to the SMSC.

@@ -83,11 +83,11 @@ public interface DataModelProvider {
 
     boolean removeBlockchain(String blockchainID);
 
-    NodeConnectionInfo createNodeConnectionInfo(String containerID, String nodeID, String rpcURL, String p2pURL) throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException;
+    NodeConnectionInfo createNodeConnectionInfo(String nodeID, String nodeURL) throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException;
 
-    NodeConnectionInfo getNodeConnectionInfo(String containerID, String nodeID);
+    NodeConnectionInfo getNodeConnectionInfo(String nodeID);
 
     void updateNodeConnectionInfo(NodeConnectionInfo info) throws NoSuchNodeException;
 
-    boolean removeNodeConnectionInfo(String containerID, String nodeID);
+    boolean removeNodeConnectionInfo(String nodeID);
 }

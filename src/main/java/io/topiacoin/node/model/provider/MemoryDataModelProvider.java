@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -300,18 +299,15 @@ public class MemoryDataModelProvider implements DataModelProvider {
 
     @Override
     public NodeConnectionInfo createNodeConnectionInfo(
-            String containerID, String nodeID, String rpcURL, String p2pURL)
+            String nodeID, String nodeURL )
             throws NodeConnectionInfoAlreadyExistsException, NoSuchContainerException {
 
-        String key = containerID + ":" + nodeID;
+        String key = nodeID;
         if ( _nodeConnectionInfoMap.containsKey(key)) {
             throw new NodeConnectionInfoAlreadyExistsException("The node connection info or the specified container/node already exists");
         }
-        if ( !_containerMap.containsKey(containerID)) {
-            throw new NoSuchContainerException("The specified container does not exist");
-        }
 
-        NodeConnectionInfo info = new NodeConnectionInfo(containerID, nodeID, rpcURL, p2pURL);
+        NodeConnectionInfo info = new NodeConnectionInfo(nodeID, nodeURL );
 
         _nodeConnectionInfoMap.put(key, info) ;
 
@@ -319,9 +315,9 @@ public class MemoryDataModelProvider implements DataModelProvider {
     }
 
     @Override
-    public NodeConnectionInfo getNodeConnectionInfo(String containerID, String nodeID) {
+    public NodeConnectionInfo getNodeConnectionInfo(String nodeID) {
 
-        String key = containerID + ":" + nodeID;
+        String key = nodeID;
 
         if ( !_nodeConnectionInfoMap.containsKey(key)) {
             return null;
@@ -334,7 +330,7 @@ public class MemoryDataModelProvider implements DataModelProvider {
     public void updateNodeConnectionInfo(NodeConnectionInfo info)
             throws NoSuchNodeException {
 
-        String key = info.getContainerID()+ ":" + info.getNodeID();
+        String key = info.getNodeID();
         if ( !_nodeConnectionInfoMap.containsKey(key)) {
             throw new NoSuchNodeException("The specified Node Info does not exist");
         }
@@ -344,9 +340,9 @@ public class MemoryDataModelProvider implements DataModelProvider {
     }
 
     @Override
-    public boolean removeNodeConnectionInfo(String containerID, String nodeID) {
+    public boolean removeNodeConnectionInfo(String nodeID) {
         boolean removed = false ;
-        String key = containerID + ":" + nodeID;
+        String key = nodeID;
         if ( _nodeConnectionInfoMap.containsKey(key)) {
             _nodeConnectionInfoMap.remove(key) ;
             removed = true ;
