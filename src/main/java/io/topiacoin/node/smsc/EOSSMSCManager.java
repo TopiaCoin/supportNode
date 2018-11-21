@@ -7,6 +7,7 @@ import io.topiacoin.eosrpcadapter.exceptions.WalletException;
 import io.topiacoin.eosrpcadapter.messages.Action;
 import io.topiacoin.eosrpcadapter.messages.TableRows;
 import io.topiacoin.eosrpcadapter.messages.Transaction;
+import io.topiacoin.node.exceptions.AlreadyRegisteredException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
 import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
@@ -89,6 +90,10 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<Void> submitProofSolution(String containerID, ChallengeSolution solution)
             throws NotRegisteredException {
 
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
         return _executorService.submit(() -> {
 
             List<Transaction.Authorization> authorizations = new ArrayList<>();
@@ -119,7 +124,7 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<List<String>> getContainers()
             throws NotRegisteredException {
 
-        if ( _nodeID == null  ) {
+        if ( !isRegistered() ) {
             throw new NotRegisteredException("This node is not yet registered");
         }
 
@@ -160,6 +165,10 @@ public class EOSSMSCManager implements SMSCManager {
     @Override
     public Future<ContainerInfo> getContainerInfo(String containerID)
             throws NotRegisteredException {
+
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
 
         return _executorService.submit(() -> {
 
@@ -225,6 +234,10 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<List<NodeConnectionInfo>> getNodesForContainer(String containerID)
             throws NotRegisteredException {
 
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
         return _executorService.submit(() -> {
 
             List<NodeConnectionInfo> nodeInfoList = new ArrayList<>();
@@ -257,6 +270,10 @@ public class EOSSMSCManager implements SMSCManager {
 
     @Override
     public Future<NodeConnectionInfo> getNodeInfo(String nodeID) throws ChainException {
+
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
 
         return _executorService.submit(() -> {
             return getNodeInfoInternal(nodeID);
@@ -297,7 +314,12 @@ public class EOSSMSCManager implements SMSCManager {
      * @param nodeID
      */
     @Override
-    public Future<Void> registerNode(String nodeID) {
+    public Future<Void> registerNode(String nodeID) 
+            throws AlreadyRegisteredException {
+
+        if ( isRegistered() ) {
+            throw new AlreadyRegisteredException("This node is already registered");
+        }
 
         return _executorService.submit(() -> {
 
@@ -384,6 +406,10 @@ public class EOSSMSCManager implements SMSCManager {
     public Future<Void> unregisterNode(String nodeID)
             throws NotRegisteredException {
 
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
         return _executorService.submit(() -> {
 
             // Clear the internally stored nodeID.
@@ -448,6 +474,11 @@ public class EOSSMSCManager implements SMSCManager {
     @Override
     public Future<List<Dispute>> getAssignedDisputes()
             throws NotRegisteredException {
+
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
         return _executorService.submit(() -> {
 
             List<Dispute> disputeList = new ArrayList<>();
@@ -476,6 +507,11 @@ public class EOSSMSCManager implements SMSCManager {
 
     @Override
     public Future<Dispute> getDispute(String disputeID) {
+
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
         return _executorService.submit(() ->{
             return getDisputeInternal(disputeID);
         });
@@ -537,7 +573,28 @@ public class EOSSMSCManager implements SMSCManager {
     @Override
     public Future<Void> sendDisputeResolution(String disputeID, String ruling)
             throws NotRegisteredException {
-        return null;
+
+        if ( !isRegistered() ) {
+            throw new NotRegisteredException("This node is not yet registered");
+        }
+
+        return _executorService.submit(() -> {
+
+            // Submit the dispute resolution
+            List<Transaction.Authorization> authorizations = new ArrayList<>();
+            authorizations.add(new Transaction.Authorization(_signingAccount, "active"));
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("disputeID", disputeID);
+            args.put("nodeID", _nodeID);
+            args.put("decision", ruling);
+
+            Action action = new Action(_contractAccount, "ruledispute", authorizations, args);
+            Date expirationDate = new Date(System.currentTimeMillis() + 60000);
+            _eosRPCAdapter.pushTransaction(action, expirationDate, _walletName);
+
+            return null;
+        });
     }
 
 

@@ -5,16 +5,17 @@ import io.topiacoin.eosrpcadapter.EOSRPCAdapter;
 import io.topiacoin.eosrpcadapter.exceptions.ChainException;
 import io.topiacoin.eosrpcadapter.exceptions.WalletException;
 import io.topiacoin.eosrpcadapter.messages.Action;
-import io.topiacoin.eosrpcadapter.messages.SignedTransaction;
 import io.topiacoin.eosrpcadapter.messages.TableRows;
 import io.topiacoin.eosrpcadapter.messages.Transaction;
 import io.topiacoin.node.model.ChallengeSolution;
 import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -38,6 +39,23 @@ public class EOSSMSCManagerTest extends AbstractSMSCManagerTest {
     @BeforeClass
     public static void setUpClass() {
         Security.addProvider(new BouncyCastleProvider());
+    }
+
+    // TODO - Remove all of the test-* wallets that are created by this test class
+    @AfterClass
+    public static void tearDownClass() {
+        File currentDir = new File(".");
+
+        File[] files = currentDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith("test-") && name.endsWith(".wallet");
+            }
+        });
+
+        for ( File file : files ) {
+            file.delete();
+        }
     }
 
     @Override

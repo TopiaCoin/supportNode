@@ -1,6 +1,5 @@
 package io.topiacoin.node.smsc;
 
-import io.topiacoin.eosrpcadapter.EOSRPCAdapter;
 import io.topiacoin.eosrpcadapter.exceptions.ChainException;
 import io.topiacoin.eosrpcadapter.exceptions.WalletException;
 import io.topiacoin.node.exceptions.NoSuchContainerException;
@@ -10,7 +9,6 @@ import io.topiacoin.node.model.Dispute;
 import io.topiacoin.node.model.NodeConnectionInfo;
 import org.junit.Test;
 
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,11 +24,6 @@ public abstract class AbstractSMSCManagerTest {
     protected abstract void terminateContainer(String containerID) throws WalletException, ChainException;
     protected abstract void submitProofSolutionHash(String containerID, String nodeID, String verificationValue, String transactionID, int blockNumber, String chunkHash) throws Exception;
     protected abstract String fileDispute(String containerID, String nodeID, String nodeURL, List<String> chunkIDs) throws Exception;
-
-    @Test
-    public void testSanity() {
-        fail ( "Test Cases Not yet Implemented" ) ;
-    }
 
     @Test
     public void testRegisterUnregisterNode() throws Exception {
@@ -434,6 +427,119 @@ public abstract class AbstractSMSCManagerTest {
 
     @Test
     public void testSendDisputeResolution() throws Exception {
-        fail ( "Test Not Yet Implemented" );
+        // In order to file a dispute, there must be at least 3 available
+        // nodes to act as arbitrators.
+        SMSCManager smscManager1 = getSMSCManager();
+        SMSCManager smscManager2 = getSMSCManager();
+        SMSCManager smscManager3 = getSMSCManager();
+        SMSCManager smscManager4 = getSMSCManager();
+
+        String nodeID1 = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
+        String nodeID2 = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
+        String nodeID3 = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
+        String nodeID4 = Long.toUnsignedString(UUID.randomUUID().getLeastSignificantBits());
+        String containerID = null;
+
+        try {
+            // We must register a Node in order to create a container
+            Future<Void> registerFuture = smscManager1.registerNode(nodeID1);
+            registerFuture.get();
+
+            // Create a Container - It will be assigned to NodeID 1 as it is the only node.
+            containerID = createContainer();
+
+            // We must register a Node in order to have available arbitrators
+            registerFuture = smscManager2.registerNode(nodeID2);
+            registerFuture.get();
+            registerFuture = smscManager3.registerNode(nodeID3);
+            registerFuture.get();
+            registerFuture = smscManager4.registerNode(nodeID4);
+            registerFuture.get();
+
+            // File a Dispute
+            List<String> chunkList = new ArrayList<>();
+            String disputeID = fileDispute(containerID, nodeID1, "url", chunkList);
+
+            assertNotNull(disputeID);
+
+            // Fetch the Dispute
+            Future<Dispute> disputeFuture = smscManager2.getDispute(disputeID);
+            Dispute dispute = disputeFuture.get();
+            assertEquals(containerID, dispute.getContainerID());
+            assertEquals(nodeID1, dispute.getDisputedNodeID());
+            assertEquals("PENDING", dispute.getStatus());
+
+            // Node 2 respond to the dispute
+            smscManager2.sendDisputeResolution(disputeID, "NODE");
+
+            // Fetch the Dispute
+            disputeFuture = smscManager2.getDispute(disputeID);
+            dispute = disputeFuture.get();
+            assertEquals(containerID, dispute.getContainerID());
+            assertEquals(nodeID1, dispute.getDisputedNodeID());
+            assertEquals("PENDING", dispute.getStatus());
+
+            // Node 3 respond to the dispute
+            smscManager3.sendDisputeResolution(disputeID, "NODE");
+
+            // Fetch the Dispute
+            disputeFuture = smscManager3.getDispute(disputeID);
+            dispute = disputeFuture.get();
+            assertEquals(containerID, dispute.getContainerID());
+            assertEquals(nodeID1, dispute.getDisputedNodeID());
+            assertEquals("PENDING", dispute.getStatus());
+
+            // Node 4 respond to the dispute
+            smscManager4.sendDisputeResolution(disputeID, "NODE");
+
+            // Fetch the Dispute
+            disputeFuture = smscManager4.getDispute(disputeID);
+            dispute = disputeFuture.get();
+            assertEquals(containerID, dispute.getContainerID());
+            assertEquals(nodeID1, dispute.getDisputedNodeID());
+            assertEquals("RESOLVED", dispute.getStatus());
+
+        } finally {
+            if ( containerID != null ) {
+                terminateContainer(containerID);
+            }
+
+            if ( smscManager1.isRegistered()) {
+                try {
+                    Future<Void> unregisterFuture = smscManager1.unregisterNode(nodeID1);
+                    unregisterFuture.get();
+                } catch (Exception e) {
+                    // NOOP
+                }
+            }
+
+            if ( smscManager2.isRegistered() ) {
+                try {
+                    Future<Void> unregisterFuture = smscManager2.unregisterNode(nodeID2);
+                    unregisterFuture.get();
+                } catch (Exception e) {
+                    // NOOP
+                }
+            }
+
+            if ( smscManager3.isRegistered() ) {
+                try {
+                    Future<Void> unregisterFuture = smscManager3.unregisterNode(nodeID3);
+                    unregisterFuture.get();
+                } catch (Exception e) {
+                    // NOOP
+                }
+            }
+
+            if ( smscManager4.isRegistered()) {
+                try {
+                    Future<Void> unregisterFuture = smscManager4.unregisterNode(nodeID4);
+                    unregisterFuture.get();
+                } catch (Exception e) {
+                    // NOOP
+                }
+            }
+        }
     }
+
 }

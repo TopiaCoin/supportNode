@@ -1,6 +1,7 @@
 package io.topiacoin.node.smsc;
 
 import io.topiacoin.eosrpcadapter.exceptions.ChainException;
+import io.topiacoin.node.exceptions.AlreadyRegisteredException;
 import io.topiacoin.node.exceptions.NotRegisteredException;
 import io.topiacoin.node.model.ChallengeSolution;
 import io.topiacoin.node.model.ContainerInfo;
@@ -58,7 +59,7 @@ public interface SMSCManager {
      * @return A Future that can be used to wait for the completion of the registration process.
      * @param nodeID
      */
-    Future<Void> registerNode(String nodeID);
+    Future<Void> registerNode(String nodeID) throws AlreadyRegisteredException;
 
     /**
      * Unregisters this node with the SMSC.  This process involves the unstaking of tokens from the SMSC as well as the
